@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { supabase } from '../services/supabase'
+import { useNavigate } from 'react-router-dom'
 
 function Login() {
-
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [mensaje, setMensaje] = useState('')
@@ -15,11 +16,11 @@ function Login() {
     })
 
     if (error) {
-      setMensaje('Usuario o contraseña incorrectos')
-      return
-    }
+  setMensaje('Usuario o contraseña incorrectos')
+  return
+}
 
-    setMensaje('Ingreso correcto')
+navigate('/sueldos')
   }
 
 
