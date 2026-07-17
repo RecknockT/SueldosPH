@@ -140,10 +140,14 @@ input {
 
 
 .resultado p {
-  color: black;
+  color: #eeeeee;
   margin: 8px 0;
+  font-size: 15px;
 }
 
+.resultado h3 {
+  color: #ffffff;
+}
 
 .resultado button {
   margin-right: 5px;
@@ -177,4 +181,107 @@ input {
 
 .item-seleccion.activo {
   background: #b9d7ff;
+}
+/* Ajuste checkbox adicionales y aportes */
+
+.box label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 5px 0;
+  white-space: nowrap;
+}
+
+
+.box input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+/* TEMA OSCURO ADMINISTRATIVO */
+
+body {
+  background: #20242b;
+  color: #e4e4e4;
+}
+
+
+.app {
+  color: #e4e4e4;
+}
+
+
+.subtitulo {
+  color: #aaaaaa;
+}
+
+
+
+/* Paneles */
+
+.box,
+.resultado,
+.lista-seleccion {
+  background: #2b3038;
+  border-color: #555;
+}
+
+
+
+/* Titulos */
+
+h3 {
+  color: #dddddd;
+}
+
+
+
+/* Listados */
+
+.item-seleccion {
+  color: #dddddd;
+}
+
+
+.item-seleccion:hover {
+  background: #3b4350;
+}
+
+
+.item-seleccion.activo {
+  background: #2563a6;
+  color: white;
+}
+
+
+
+/* Inputs */
+
+input {
+  background: #353b45;
+  border: 1px solid #666;
+  color: white;
+}
+
+
+
+/* Checkboxes */
+
+.box input[type="checkbox"] {
+  accent-color: #3b82f6;
+}
+
+
+
+/* Botones */
+
+button {
+  background: #343b46;
+  color: white;
+  border: 1px solid #666;
+}
+
+
+button:hover {
+  background: #465263;
 }
