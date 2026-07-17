@@ -35,6 +35,7 @@ function Sueldos() {
   const [aporteCajaFamilia, setAporteCajaFamilia] = useState(true);
   const [aporteFMVDD, setAporteFMVDD] = useState(true);
   const [aporteSeguroVitalicio, setAporteSeguroVitalicio] = useState(true);
+ 
 
   useEffect(() => {
     
@@ -52,7 +53,8 @@ function Sueldos() {
 
 }, [cargoSeleccionado, categoriaSeleccionada]);
 
-let bruto = sueldoBasico;
+let bruto = sueldoBasico + adicRem;
+
 
 if (clasificacionResiduos) {
   bruto += planillaJunio2026.adicionales.clasificacionResiduos;
@@ -110,7 +112,7 @@ if (aporteSeguroVitalicio) {
 }
 
 
-let neto = bruto - descuentos;
+let neto = bruto - descuentos + adicNoRem;
 
 return (
   <div className="app">
@@ -279,34 +281,23 @@ return (
 </label>
 
 
-  <label>
+<label>
   Adic. Remunerativo
   <input
     className="chico"
     type="number"
     value={adicRem}
-    onChange={(e) => setAdicRem(Number(e.target.value))}
+    onChange={(e)=>setAdicRem(Number(e.target.value))}
   />
 </label>
-
-
+  
  <label>
   Adic. No Remunerativo
   <input
     className="chico"
     type="number"
     value={adicNoRem}
-    onChange={(e) => setAdicNoRem(Number(e.target.value))}
-  />
-</label>
-  
-  <label>
-  C. Alimentaria %
-  <input
-    className="chico"
-    type="number"
-    value={canasta}
-    onChange={(e) => setCanasta(Number(e.target.value))}
+    onChange={(e)=>setAdicNoRem(Number(e.target.value))}
   />
 </label>
 
@@ -483,6 +474,9 @@ return (
 
 
           <p>Bruto: ${bruto.toLocaleString("es-AR")}</p>
+          <p>
+  No remunerativo: ${adicNoRem.toLocaleString("es-AR")}
+</p>
           <p>
   Descuentos: ${descuentos.toLocaleString("es-AR")}
 </p>
