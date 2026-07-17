@@ -5,13 +5,14 @@ body {
 }
 
 .app {
-  padding: 10px;
-  width: 900px;
+  padding: 8px;
+  width: 850px;
+  font-size: 14px;
 }
 
 h1 {
   margin: 0;
-  font-size: 28px;
+  font-size: 22px;
 }
 
 .subtitulo {
@@ -80,7 +81,8 @@ input {
 
 
 .chico {
-  width: 170px;
+  width: 120px;
+  height: 20px;
 }
 
 
@@ -111,9 +113,9 @@ input {
 
 .box {
   background: white;
-  border: 1px solid #aaa;
-  padding: 10px;
-  width: 230px;
+  border: 1px solid #555;
+  padding: 8px;
+  width: 210px;
 }
 
 
@@ -166,11 +168,11 @@ input {
 
 
 .item-seleccion {
-  height: 23px;
-  line-height: 23px;
+  height: 20px;
+  line-height: 20px;
   padding-left: 5px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 
@@ -284,4 +286,25 @@ button {
 
 button:hover {
   background: #465263;
+}
+.selector-planilla {
+  margin-bottom: 10px;
+}
+
+
+.selector-planilla label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+}
+
+
+.selector-planilla select {
+  width: 150px;
+  height: 28px;
+  background: #353b45;
+  color: white;
+  border: 1px solid #666;
+  padding-left: 5px;
 }

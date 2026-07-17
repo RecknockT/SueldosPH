@@ -267,47 +267,52 @@ return (
 
         <div className="box">
 
-
-          <h3>Aportes</h3>
-
-
-          <label>
-            <input type="checkbox" defaultChecked/>
-            Jubilatorio 11%
-          </label>
+  <h3>Aportes</h3>
 
 
-          <label>
-            <input type="checkbox" defaultChecked/>
-            INSSJP 3%
-          </label>
+  <label>
+    <input type="checkbox" defaultChecked/>
+    Jubilatorio 11%
+  </label>
 
 
-          <label>
-            <input type="checkbox" defaultChecked/>
-            Sindicato
-          </label>
+  <label>
+    <input type="checkbox" defaultChecked/>
+    INSSJP 3%
+  </label>
 
 
-          <label>
-            <input type="checkbox" defaultChecked/>
-            Obra social
-          </label>
+  <label>
+    <input type="checkbox" defaultChecked/>
+    Sindicato 2%
+  </label>
 
 
-          <label>
-            <input type="checkbox" defaultChecked/>
-            Caja protección familia
-          </label>
+  <label>
+    <input type="checkbox" defaultChecked/>
+    Obra social 3%
+  </label>
 
 
-          <label>
-            <input type="checkbox" defaultChecked/>
-            Seguro vitalicio
-          </label>
+  <label>
+    <input type="checkbox" defaultChecked/>
+    Caja protección a la familia 1%
+  </label>
 
 
-        </div>
+  <label>
+    <input type="checkbox" defaultChecked/>
+    FMVDD 1%
+  </label>
+
+
+  <label>
+    <input type="checkbox" defaultChecked/>
+    Seguro vitalicio 0,75%
+  </label>
+
+
+</div>
 
 
 
