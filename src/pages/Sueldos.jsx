@@ -245,13 +245,13 @@ return (
 
   <label>
     <input type="checkbox"/>
-    Limpieza autos
+    Limpieza de cochera
   </label>
 
 
   <label>
     <input type="checkbox"/>
-    Movimiento autos
+    Movimiento de autos
   </label>
 
   <label>
