@@ -3,6 +3,13 @@ import planillaJunio2026 from "../data/planillas/junio2026.json";
 function Sueldos() {
 
   const cargos = planillaJunio2026.cargos;
+  const cargosAntiguedad1 = [
+  "Ayudante Media jornada",
+  "Personal Vigilancia Media Jornada",
+  "Ayudante Temporario Media Jornada",
+  "Suplentes fijos",
+  "Jornalizados"
+];
   const categorias = [
     "Categoría 1",
     "Categoría 2",
@@ -53,8 +60,42 @@ function Sueldos() {
 
 }, [cargoSeleccionado, categoriaSeleccionada]);
 
-let bruto = sueldoBasico + adicRem;
+let adicionalAntiguedad = 0;
 
+if (antiguedad > 0) {
+
+  if (cargosAntiguedad1.includes(cargoSeleccionado)) {
+
+    adicionalAntiguedad =
+      antiguedad * planillaJunio2026.adicionales.plusAntiguedad1;
+
+  } else {
+
+    adicionalAntiguedad =
+      antiguedad * planillaJunio2026.adicionales.plusAntiguedad2;
+
+  }
+
+}
+
+
+let bruto = sueldoBasico + adicRem + adicionalAntiguedad;
+
+if (antiguedad > 0) {
+
+  if (cargosAntiguedad1.includes(cargoSeleccionado)) {
+
+    adicionalAntiguedad =
+      antiguedad * planillaJunio2026.adicionales.plusAntiguedad1;
+
+  } else {
+
+    adicionalAntiguedad =
+      antiguedad * planillaJunio2026.adicionales.plusAntiguedad2;
+
+  }
+
+}
 
 if (clasificacionResiduos) {
   bruto += planillaJunio2026.adicionales.clasificacionResiduos;
@@ -474,9 +515,8 @@ return (
 
 
           <p>Bruto: ${bruto.toLocaleString("es-AR")}</p>
-          <p>
-  No remunerativo: ${adicNoRem.toLocaleString("es-AR")}
-</p>
+          <p>Antigüedad: ${adicionalAntiguedad.toLocaleString("es-AR")}</p>
+          <p> No remunerativo: ${adicNoRem.toLocaleString("es-AR")}</p>
           <p>
   Descuentos: ${descuentos.toLocaleString("es-AR")}
 </p>
