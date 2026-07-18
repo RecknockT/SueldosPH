@@ -1,26 +1,63 @@
+// ===============================
+// IMPORTACIÓN DE DATOS Y LIBRERÍAS
+// ===============================
 import { useState, useEffect } from "react";
 import planillaJunio2026 from "../data/planillas/junio2026.json";
-function Sueldos() {
+import planillaMayo2026 from "../data/planillas/mayo2026.json";
 
-  const cargos = planillaJunio2026.cargos;
+// ===============================
+// PLANILLAS SALARIALES DISPONIBLES
+// ===============================
+
+const planillas = {
+
+  "Junio 2026": planillaJunio2026,
+// 
+  "Mayo 2026": planillaMayo2026
+
+};
+
+// ===============================
+// COMPONENTE PRINCIPAL SUELDOS
+// ===============================
+
+function Sueldos() {
+// ===============================
+// DATOS FIJOS DE LIQUIDACIÓN
+// Categorías y cargos especiales
+// ===============================
   const cargosAntiguedad1 = [
-  "Ayudante Media jornada",
-  "Personal Vigilancia Media Jornada",
-  "Ayudante Temporario Media Jornada",
-  "Suplentes fijos",
-  "Jornalizados"
-];
+    "Ayudante Media jornada",
+    "Personal Vigilancia Media Jornada",
+    "Ayudante Temporario Media Jornada",
+    "Suplentes fijos",
+    "Jornalizados"
+  ];
   const categorias = [
     "Categoría 1",
     "Categoría 2",
     "Categoría 3",
     "Categoría 4"
   ];
+// ===============================
+// ESTADOS DE LA APLICACIÓN
+// Selección, entradas y opciones
+// ===============================
+  const [planillaSeleccionada, setPlanillaSeleccionada] = useState(
+  "Junio 2026"
+);
 
+  const planillaActual = planillas[planillaSeleccionada];
 
-  const [cargoSeleccionado, setCargoSeleccionado] = useState(cargos[0].nombre);
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(categorias[0]);
-  const [planillaSeleccionada, setPlanillaSeleccionada] = useState("Junio 2026");
+  const cargos = planillaActual.cargos;
+
+  const [cargoSeleccionado, setCargoSeleccionado] = useState(
+  planillaActual.cargos[0].nombre
+);
+
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(
+    categorias[0]
+  );
   const [sueldoBasico, setSueldoBasico] = useState(0);
   const [antiguedad, setAntiguedad] = useState(0);
   const [horas100, setHoras100] = useState(0);
@@ -44,197 +81,199 @@ function Sueldos() {
   const [aporteSeguroVitalicio, setAporteSeguroVitalicio] = useState(true);
   const [tituloEncargadoIntegral, setTituloEncargadoIntegral] = useState(false);
 
+
   useEffect(() => {
-    
-  const cargo = planillaJunio2026.cargos.find(
-    c => c.nombre === cargoSeleccionado
-  );
 
-  if (!cargo) return;
+    const cargo = planillaActual.cargos.find(
+      c => c.nombre === cargoSeleccionado
+    );
 
-  const numeroCategoria = categoriaSeleccionada.replace("Categoría ", "");
+    if (!cargo) return;
 
-  const sueldo = cargo.categorias[numeroCategoria];
+    const numeroCategoria = categoriaSeleccionada.replace("Categoría ", "");
 
-  setSueldoBasico(sueldo);
+    const sueldo = cargo.categorias[numeroCategoria];
 
-}, [cargoSeleccionado, categoriaSeleccionada]);
+    setSueldoBasico(sueldo);
 
-let adicionalAntiguedad = 0;
+  }, [
+    planillaSeleccionada,
+    cargoSeleccionado,
+    categoriaSeleccionada
+  ]);
 
-if (antiguedad > 0) {
+  let adicionalAntiguedad = 0;
 
-  if (cargosAntiguedad1.includes(cargoSeleccionado)) {
+  if (antiguedad > 0) {
 
-    adicionalAntiguedad =
-      antiguedad * planillaJunio2026.adicionales.plusAntiguedad1;
+    if (cargosAntiguedad1.includes(cargoSeleccionado)) {
 
-  } else {
+      adicionalAntiguedad =
+        antiguedad * planillaActual.adicionales.plusAntiguedad1;
 
-    adicionalAntiguedad =
-      antiguedad * planillaJunio2026.adicionales.plusAntiguedad2;
+    } else {
 
-  }
+      adicionalAntiguedad =
+        antiguedad * planillaActual.adicionales.plusAntiguedad2;
 
-}
-
-let adicionalVivienda = 0;
-if (cargoSeleccionado.toLowerCase().includes("vivienda")) {
-  adicionalVivienda = planillaJunio2026.adicionales.valorVivienda;
-}
-
-let bruto = sueldoBasico + adicRem + adicionalAntiguedad + adicionalVivienda;
-let jornal =
-  sueldoBasico +
-  adicRem +
-  adicionalAntiguedad +
-  adicionalVivienda;
-
-if (antiguedad > 0) {
-
-  if (cargosAntiguedad1.includes(cargoSeleccionado)) {
-
-    adicionalAntiguedad =
-      antiguedad * planillaJunio2026.adicionales.plusAntiguedad1;
-
-  } else {
-
-    adicionalAntiguedad =
-      antiguedad * planillaJunio2026.adicionales.plusAntiguedad2;
+    }
 
   }
 
-}
+  let adicionalVivienda = 0;
+  if (cargoSeleccionado.toLowerCase().includes("vivienda")) {
+    adicionalVivienda = planillaActual.adicionales.valorVivienda;
+  }
 
-if (clasificacionResiduos) {
-  bruto += planillaJunio2026.adicionales.clasificacionResiduos;
-}
-
-if (retiroResiduos) {
-  bruto += planillaJunio2026.adicionales.retiroResiduos * uf;
-}
-
-if (jardin) {
-  bruto += planillaJunio2026.adicionales.jardin;
-}
-
-if (limpiezaCochera) {
-  bruto += planillaJunio2026.adicionales.limpiezaCocheras;
-}
-
-if (movimientoAutos) {
-  bruto += planillaJunio2026.adicionales.movimientoCoches;
-}
-
-if (viaticos) {
-  bruto += planillaJunio2026.adicionales.viaticos;
-}
-if (tituloEncargadoIntegral) {
-  bruto += sueldoBasico * 
-    (planillaJunio2026.adicionales.tituloEncargadoIntegral / 100);
-}
+  let bruto = sueldoBasico + adicRem + adicionalAntiguedad + adicionalVivienda;
+  let jornal =
+    sueldoBasico +
+    adicRem +
+    adicionalAntiguedad +
+    adicionalVivienda;
 
 
-if (clasificacionResiduos) {
-  jornal += planillaJunio2026.adicionales.clasificacionResiduos;
-}
+  if (clasificacionResiduos) {
+    bruto += planillaActual.adicionales.clasificacionResiduos;
+  }
 
-if (retiroResiduos) {
-  jornal += planillaJunio2026.adicionales.retiroResiduos * uf;
-}
+  if (retiroResiduos) {
+    bruto += planillaActual.adicionales.retiroResiduos * uf;
+  }
 
-if (jardin) {
-  jornal += planillaJunio2026.adicionales.jardin;
-}
+  if (jardin) {
+    bruto += planillaActual.adicionales.jardin;
+  }
 
-if (limpiezaCochera) {
-  jornal += planillaJunio2026.adicionales.limpiezaCocheras;
-}
+  if (limpiezaCochera) {
+    bruto += planillaActual.adicionales.limpiezaCocheras;
+  }
 
-if (movimientoAutos) {
-  jornal += planillaJunio2026.adicionales.movimientoCoches;
-}
+  if (movimientoAutos) {
+    bruto += planillaActual.adicionales.movimientoCoches;
+  }
 
-if (viaticos) {
-  jornal += planillaJunio2026.adicionales.viaticos;
-}
+  if (viaticos) {
+    bruto += planillaActual.adicionales.viaticos;
+  }
+  if (tituloEncargadoIntegral) {
+    bruto += sueldoBasico *
+      (planillaActual.adicionales.tituloEncargadoIntegral / 100);
+  }
 
-if (tituloEncargadoIntegral) {
-  jornal += sueldoBasico * 0.10;
-}
 
-let valorHora = jornal / 200;
-let totalHorasExtras =
-  (horas50 * valorHora * 1.5) +
-  (horas100 * valorHora * 2);
+  if (clasificacionResiduos) {
+    jornal += planillaActual.adicionales.clasificacionResiduos;
+  }
+
+  if (retiroResiduos) {
+    jornal += planillaActual.adicionales.retiroResiduos * uf;
+  }
+
+  if (jardin) {
+    jornal += planillaActual.adicionales.jardin;
+  }
+
+  if (limpiezaCochera) {
+    jornal += planillaActual.adicionales.limpiezaCocheras;
+  }
+
+  if (movimientoAutos) {
+    jornal += planillaActual.adicionales.movimientoCoches;
+  }
+
+  if (viaticos) {
+    jornal += planillaActual.adicionales.viaticos;
+  }
+
+  if (tituloEncargadoIntegral) {
+    jornal += sueldoBasico * 0.10;
+  }
+
+  let valorHora = jornal / 200;
+  let totalHorasExtras =
+    (horas50 * valorHora * 1.5) +
+    (horas100 * valorHora * 2);
 
   bruto += totalHorasExtras;
-let descuentos = 0;
+  let descuentos = 0;
 
 
-if (aporteJubilatorio) {
-  descuentos += bruto * 0.11;
-}
+  if (aporteJubilatorio) {
+    descuentos += bruto * 0.11;
+  }
 
-if (aporteINSSJP) {
-  descuentos += bruto * 0.03;
-}
+  if (aporteINSSJP) {
+    descuentos += bruto * 0.03;
+  }
 
-if (aporteSindicato) {
-  descuentos += bruto * 0.02;
-}
+  if (aporteSindicato) {
+    descuentos += bruto * 0.02;
+  }
 
-if (aporteObraSocial) {
-  descuentos += bruto * 0.03;
-}
+  if (aporteObraSocial) {
+    descuentos += bruto * 0.03;
+  }
 
-if (aporteCajaFamilia) {
-  descuentos += bruto * 0.01;
-}
+  if (aporteCajaFamilia) {
+    descuentos += bruto * 0.01;
+  }
 
-if (aporteFMVDD) {
-  descuentos += bruto * 0.01;
-}
+  if (aporteFMVDD) {
+    descuentos += bruto * 0.01;
+  }
 
-if (aporteSeguroVitalicio) {
-  descuentos += bruto * 0.0075;
-}
+  if (aporteSeguroVitalicio) {
+    descuentos += bruto * 0.0075;
+  }
 
-descuentos += adicionalVivienda;
+  descuentos += adicionalVivienda;
 
-let neto = bruto - descuentos + adicNoRem;
+// ===============================
+// RESULTADO FINAL DE LIQUIDACIÓN
+// ===============================
 
-return (
-  <div className="app">
-
-
-    <div className="selector-planilla">
-
-      <label>
-        Planilla Salarial
-
-        <select
-          value={planillaSeleccionada}
-          onChange={(e) => setPlanillaSeleccionada(e.target.value)}
-        >
-
-          <option>
-            Junio 2026
-          </option>
-
-          <option>
-            Julio 2026
-          </option>
-
-        </select>
-
-      </label>
-
-    </div>
+  let neto = bruto - descuentos + adicNoRem;
+console.log({
+  sueldoBasico,
+  adicRem,
+  adicionalAntiguedad,
+  adicionalVivienda,
+  bruto
+});
+// ===============================
+// INTERFAZ VISUAL
+// ===============================
+  return (
+    <div className="app">
 
 
+      <div className="selector-planilla">
 
-    <h1>SueldosPH</h1>
+        <label>
+
+          <select
+            value={planillaSeleccionada}
+            onChange={(e) => setPlanillaSeleccionada(e.target.value)}
+          >
+
+            {
+              Object.keys(planillas).map((nombre) => (
+
+                <option key={nombre}>
+                  {nombre}
+                </option>
+
+              ))
+            }
+
+          </select>
+
+        </label>
+
+      </div>
+
+      <h1>SueldosPH</h1>
 
       <div className="subtitulo">
         Sistema de liquidación de sueldos
@@ -254,49 +293,43 @@ return (
 
           <div className="lista-seleccion">
 
-        {
-  cargos.map((cargo) => (
+            {
+              cargos.map((cargo) => (
 
-    <div
-      key={cargo.id}
+                <div
+                  key={cargo.id}
 
-      className={
-        cargoSeleccionado === cargo.nombre
-          ? "item-seleccion activo"
-          : "item-seleccion"
-      }
+                  className={
+                    cargoSeleccionado === cargo.nombre
+                      ? "item-seleccion activo"
+                      : "item-seleccion"
+                  }
 
-      onClick={() => setCargoSeleccionado(cargo.nombre)}
-    >
+                  onClick={() => setCargoSeleccionado(cargo.nombre)}
+                >
 
-      {cargo.nombre}
+                  {cargo.nombre}
 
-    </div>
+                </div>
 
-  ))
-}
+              ))
+            }
 
           </div>
 
 
         </div>
 
-
-
-
         {/* CATEGORIAS */}
 
         <div className="campo categoria">
 
-
           <h3>Categoría</h3>
-
 
           <div className="lista-seleccion categoria-lista">
 
-
             {
-              categorias.map((categoria)=>(
+              categorias.map((categoria) => (
 
                 <div
 
@@ -304,8 +337,8 @@ return (
 
                   className={
                     categoriaSeleccionada === categoria
-                    ? "item-seleccion activo"
-                    : "item-seleccion"
+                      ? "item-seleccion activo"
+                      : "item-seleccion"
                   }
 
 
@@ -321,87 +354,74 @@ return (
               ))
             }
 
+          </div>
+
+          <label>
+            UF
+            <input
+              className="chico"
+              type="number"
+              value={uf}
+              onChange={(e) => setUf(Number(e.target.value))}
+            />
+          </label>
+          <div className="datos-horas">
+
+            <label>
+              Antigüedad
+              <input
+                className="chico"
+                type="number"
+                value={antiguedad}
+                onChange={(e) => setAntiguedad(Number(e.target.value))}
+              />
+            </label>
+
+            <label>
+              Horas 100%
+              <input
+                className="chico"
+                type="number"
+                value={horas100}
+                onChange={(e) => setHoras100(Number(e.target.value))}
+              />
+            </label>
+
+            <label>
+              Horas 50%
+              <input
+                className="chico"
+                type="number"
+                value={horas50}
+                onChange={(e) => setHoras50(Number(e.target.value))}
+              />
+            </label>
+
+            <label>
+              Adic. Remunerativo
+              <input
+                className="chico"
+                type="number"
+                value={adicRem}
+                onChange={(e) => setAdicRem(Number(e.target.value))}
+              />
+            </label>
+
+            <label>
+              Adic. No Remunerativo
+              <input
+                className="chico"
+                type="number"
+                value={adicNoRem}
+                onChange={(e) => setAdicNoRem(Number(e.target.value))}
+              />
+            </label>
 
           </div>
 
-
-
-          <label>
-  UF
-  <input
-    className="chico"
-    type="number"
-    value={uf}
-    onChange={(e) => setUf(Number(e.target.value))}
-  />
-</label>
-          <div className="datos-horas">
-
-
-  <label>
-  Antigüedad
-  <input
-    className="chico"
-    type="number"
-    value={antiguedad}
-    onChange={(e) => setAntiguedad(Number(e.target.value))}
-  />
-</label>
-
-
-  <label>
-  Horas 100%
-  <input
-    className="chico"
-    type="number"
-    value={horas100}
-    onChange={(e) => setHoras100(Number(e.target.value))}
-  />
-</label>
-
-
-  <label>
-  Horas 50%
-  <input
-    className="chico"
-    type="number"
-    value={horas50}
-    onChange={(e) => setHoras50(Number(e.target.value))}
-  />
-</label>
-
-
-<label>
-  Adic. Remunerativo
-  <input
-    className="chico"
-    type="number"
-    value={adicRem}
-    onChange={(e)=>setAdicRem(Number(e.target.value))}
-  />
-</label>
-  
- <label>
-  Adic. No Remunerativo
-  <input
-    className="chico"
-    type="number"
-    value={adicNoRem}
-    onChange={(e)=>setAdicNoRem(Number(e.target.value))}
-  />
-</label>
-
-</div>
-
-
         </div>
 
-
       </div>
-
-
-
-
 
       <div className="bloques">
 
@@ -409,209 +429,167 @@ return (
 
         <div className="box adicionales">
 
-  <h3>Adicionales</h3>
+          <h3>Adicionales</h3>
 
 
-  <label>
-  <input
-    type="checkbox"
-    checked={clasificacionResiduos}
-    onChange={(e)=>setClasificacionResiduos(e.target.checked)}
-  />
-  C. Residuos
-</label>
+          <label>
+            <input
+              type="checkbox"
+              checked={clasificacionResiduos}
+              onChange={(e) => setClasificacionResiduos(e.target.checked)}
+            />
+            C. Residuos
+          </label>
 
-<label>
-  <input
-    type="checkbox"
-    checked={retiroResiduos}
-    onChange={(e)=>setRetiroResiduos(e.target.checked)}
-  />
-  R. Residuos
-</label>
+          <label>
+            <input
+              type="checkbox"
+              checked={retiroResiduos}
+              onChange={(e) => setRetiroResiduos(e.target.checked)}
+            />
+            R. Residuos
+          </label>
 
+          <label>
+            <input
+              type="checkbox"
+              checked={jardin}
+              onChange={(e) => setJardin(e.target.checked)}
+            />
+            Jardín
+          </label>
 
-  <label>
-  <input
-    type="checkbox"
-    checked={jardin}
-    onChange={(e) => setJardin(e.target.checked)}
-  />
-  Jardín
-</label>
+          <label>
+            <input
+              type="checkbox"
+              checked={limpiezaCochera}
+              onChange={(e) => setLimpiezaCochera(e.target.checked)}
+            />
+            Limpieza de cochera
+          </label>
 
+          <label>
+            <input
+              type="checkbox"
+              checked={movimientoAutos}
+              onChange={(e) => setMovimientoAutos(e.target.checked)}
+            />
+            Movimiento de autos
+          </label>
 
- <label>
-  <input
-    type="checkbox"
-    checked={limpiezaCochera}
-    onChange={(e)=>setLimpiezaCochera(e.target.checked)}
-  />
-  Limpieza de cochera
-</label>
+          <label>
+            <input
+              type="checkbox"
+              checked={viaticos}
+              onChange={(e) => setViaticos(e.target.checked)}
+            />
+            Viáticos
+          </label>
 
+          <label>
+            <input
+              type="checkbox"
+              checked={tituloEncargadoIntegral}
+              onChange={(e) => setTituloEncargadoIntegral(e.target.checked)}
+            />
+            Título Encargado Integral
+          </label>
 
-<label>
-  <input
-    type="checkbox"
-    checked={movimientoAutos}
-    onChange={(e)=>setMovimientoAutos(e.target.checked)}
-  />
-  Movimiento de autos
-</label>
-
-
-<label>
-  <input
-    type="checkbox"
-    checked={viaticos}
-    onChange={(e)=>setViaticos(e.target.checked)}
-  />
-  Viáticos
-</label>
-
-<label>
-  <input
-    type="checkbox"
-    checked={tituloEncargadoIntegral}
-    onChange={(e)=>setTituloEncargadoIntegral(e.target.checked)}
-  />
-  Título Encargado Integral
-</label>
-
-</div>
-
-
-
-
+        </div>
 
         <div className="box">
 
-  <h3>Aportes</h3>
+          <h3>Aportes</h3>
 
+          <label>
+            <input
+              type="checkbox"
+              checked={aporteJubilatorio}
+              onChange={(e) => setAporteJubilatorio(e.target.checked)}
+            />
+            Jubilatorio 11%
+          </label>
 
-  <label>
-  <input
-    type="checkbox"
-    checked={aporteJubilatorio}
-    onChange={(e)=>setAporteJubilatorio(e.target.checked)}
-  />
-  Jubilatorio 11%
-</label>
+          <label>
+            <input
+              type="checkbox"
+              checked={aporteINSSJP}
+              onChange={(e) => setAporteINSSJP(e.target.checked)}
+            />
+            INSSJP 3%
+          </label>
 
+          <label>
+            <input
+              type="checkbox"
+              checked={aporteSindicato}
+              onChange={(e) => setAporteSindicato(e.target.checked)}
+            />
+            Sindicato 2%
+          </label>
 
-<label>
-  <input
-    type="checkbox"
-    checked={aporteINSSJP}
-    onChange={(e)=>setAporteINSSJP(e.target.checked)}
-  />
-  INSSJP 3%
-</label>
+          <label>
+            <input
+              type="checkbox"
+              checked={aporteObraSocial}
+              onChange={(e) => setAporteObraSocial(e.target.checked)}
+            />
+            Obra social 3%
+          </label>
 
+          <label>
+            <input
+              type="checkbox"
+              checked={aporteCajaFamilia}
+              onChange={(e) => setAporteCajaFamilia(e.target.checked)}
+            />
+            Caja protección a la familia 1%
+          </label>
 
-<label>
-  <input
-    type="checkbox"
-    checked={aporteSindicato}
-    onChange={(e)=>setAporteSindicato(e.target.checked)}
-  />
-  Sindicato 2%
-</label>
+          <label>
+            <input
+              type="checkbox"
+              checked={aporteFMVDD}
+              onChange={(e) => setAporteFMVDD(e.target.checked)}
+            />
+            FMVDD 1%
+          </label>
 
+          <label>
+            <input
+              type="checkbox"
+              checked={aporteSeguroVitalicio}
+              onChange={(e) => setAporteSeguroVitalicio(e.target.checked)}
+            />
+            Seguro vitalicio 0,75%
+          </label>
 
-<label>
-  <input
-    type="checkbox"
-    checked={aporteObraSocial}
-    onChange={(e)=>setAporteObraSocial(e.target.checked)}
-  />
-  Obra social 3%
-</label>
-
-
-<label>
-  <input
-    type="checkbox"
-    checked={aporteCajaFamilia}
-    onChange={(e)=>setAporteCajaFamilia(e.target.checked)}
-  />
-  Caja protección a la familia 1%
-</label>
-
-
-<label>
-  <input
-    type="checkbox"
-    checked={aporteFMVDD}
-    onChange={(e)=>setAporteFMVDD(e.target.checked)}
-  />
-  FMVDD 1%
-</label>
-
-
-<label>
-  <input
-    type="checkbox"
-    checked={aporteSeguroVitalicio}
-    onChange={(e)=>setAporteSeguroVitalicio(e.target.checked)}
-  />
-  Seguro vitalicio 0,75%
-</label>
-
-
-</div>
-
-
-
-
+        </div>
 
         <div className="resultado">
 
-
           <h3>Resultado</h3>
-
 
           <p>Bruto: ${bruto.toLocaleString("es-AR")}</p>
           <p>Antigüedad: ${adicionalAntiguedad.toLocaleString("es-AR")}</p>
-          <p>
-  Jornal: ${jornal.toLocaleString("es-AR")}
-</p>
-
-<p>
-  Valor hora: ${valorHora.toLocaleString("es-AR")}
-</p>
-
-<p>
-  Horas extras: ${totalHorasExtras.toLocaleString("es-AR")}
-</p>
+          <p>Jornal: ${jornal.toLocaleString("es-AR")}</p>
+          <p>Valor hora: ${valorHora.toLocaleString("es-AR")}</p>
+          <p> Horas extras: ${totalHorasExtras.toLocaleString("es-AR")}</p>
           <p> No remunerativo: ${adicNoRem.toLocaleString("es-AR")}</p>
-          <p>
-  Descuentos: ${descuentos.toLocaleString("es-AR")}
-</p>
-
-<p>
-  Neto: ${neto.toLocaleString("es-AR")}
-</p>
-
-
+          <p> Descuentos: ${descuentos.toLocaleString("es-AR")}</p>
+          <p>Neto: ${neto.toLocaleString("es-AR")} </p>
 
           <button>
             CALCULAR
           </button>
 
-
           <button>
             REINICIAR
           </button>
 
-
-
         </div>
 
-
       </div>
-
 
     </div>
   )

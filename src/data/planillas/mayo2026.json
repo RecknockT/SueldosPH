@@ -1,0 +1,242 @@
+{
+    "nombre": "Planilla Salarial Mayo 2026",
+    "cargos": [
+        {
+            "id": "encargado_permanente_cv",
+            "nombre": "Encargado Permanente con vivienda",
+            "categorias": {
+                "1": 1089785,
+                "2": 1044377,
+                "3": 998970,
+                "4": 908154
+            }
+        },
+        {
+            "id": "encargado_permanente_sv",
+            "nombre": "Encargado Permanente sin vivienda",
+            "categorias": {
+                "1": 1260697,
+                "2": 1208168,
+                "3": 1155639,
+                "4": 1050581
+            }
+        },
+        {
+            "id": "ayudante_permanente_cv",
+            "nombre": "Ayudante Permanente con vivienda",
+            "categorias": {
+                "1": 1089785,
+                "2": 1044377,
+                "3": 998970,
+                "4": 908154
+            }
+        },
+        {
+            "id": "ayudante_permanente_sv",
+            "nombre": "Ayudante Permanente sin vivienda",
+            "categorias": {
+                "1": 1260697,
+                "2": 1208168,
+                "3": 1155639,
+                "4": 1050581
+            }
+        },
+        {
+            "id": "ayudante_media_jornada",
+            "nombre": "Ayudante Media jornada",
+            "categorias": {
+                "1": 630349,
+                "2": 604084,
+                "3": 577820,
+                "4": 525291
+            }
+        },
+        {
+            "id": "personal_asimilado_cv",
+            "nombre": "Personal Asimilado con vivienda",
+            "categorias": {
+                "1": 1089785,
+                "2": 1044377,
+                "3": 998970,
+                "4": 908154
+            }
+        },
+        {
+            "id": "personal_asimilado_sv",
+            "nombre": "Personal Asimilado sin vivienda",
+            "categorias": {
+                "1": 1260697,
+                "2": 1208168,
+                "3": 1155639,
+                "4": 1050581
+            }
+        },
+        {
+            "id": "mayordomo_cv",
+            "nombre": "Mayordomo con vivienda",
+            "categorias": {
+                "1": 1125952,
+                "2": 1079038,
+                "3": 1032123,
+                "4": 938294
+            }
+        },
+        {
+            "id": "mayordomo_sv",
+            "nombre": "Mayordomo sin vivienda",
+            "categorias": {
+                "1": 1307486,
+                "2": 1253008,
+                "3": 1198529,
+                "4": 1089572
+            }
+        },
+        {
+            "id": "intendente",
+            "nombre": "Intendente",
+            "categorias": {
+                "1": 1555281,
+                "2": 1555281,
+                "3": 1555281,
+                "4": 1555281
+            }
+        },
+        {
+            "id": "personal_mas_una_funcion_cv",
+            "nombre": "Personal con más de 1 función con vivienda",
+            "categorias": {
+                "1": 1089785,
+                "2": 1044377,
+                "3": 998970,
+                "4": 908154
+            }
+        },
+        {
+            "id": "personal_mas_una_funcion_sv",
+            "nombre": "Personal con más de 1 función sin vivienda",
+            "categorias": {
+                "1": 1260697,
+                "2": 1208168,
+                "3": 1155639,
+                "4": 1050581
+            }
+        },
+        {
+            "id": "encargado_guardacoches_cv",
+            "nombre": "Encargado Guardacoches con vivienda",
+            "categorias": {
+                "1": 955299,
+                "2": 955299,
+                "3": 955299,
+                "4": 955299
+            }
+        },
+        {
+            "id": "encargado_guardacoches_sv",
+            "nombre": "Encargado Guardacoches sin vivienda",
+            "categorias": {
+                "1": 1029119,
+                "2": 1029119,
+                "3": 1029119,
+                "4": 1029119
+            }
+        },
+        {
+            "id": "vigilancia_nocturna",
+            "nombre": "Personal Vigilancia Nocturna",
+            "categorias": {
+                "1": 1127991,
+                "2": 1127991,
+                "3": 1127991,
+                "4": 1127991
+            }
+        },
+        {
+            "id": "vigilancia_diurna",
+            "nombre": "Personal Vigilancia Diurna",
+            "categorias": {
+                "1": 1056829,
+                "2": 1056829,
+                "3": 1056829,
+                "4": 1056829
+            }
+        },
+        {
+            "id": "vigilancia_media_jornada",
+            "nombre": "Personal Vigilancia Media Jornada",
+            "categorias": {
+                "1": 528414,
+                "2": 528414,
+                "3": 528414,
+                "4": 528414
+            }
+        },
+        {
+            "id": "encargado_no_permanente_cv",
+            "nombre": "Encargado No Permanente con vivienda",
+            "categorias": {
+                "1": 558435,
+                "2": 558435,
+                "3": 558435,
+                "4": 558435
+            }
+        },
+        {
+            "id": "encargado_no_permanente_sv",
+            "nombre": "Encargado No Permanente sin vivienda",
+            "categorias": {
+                "1": 598586,
+                "2": 598586,
+                "3": 598586,
+                "4": 598586
+            }
+        },
+        {
+            "id": "ayudante_temporario",
+            "nombre": "Ayudante Temporario",
+            "categorias": {
+                "1": 1037220,
+                "2": 1037220,
+                "3": 1037220,
+                "4": 1037220
+            }
+        },
+        {
+            "id": "ayudante_temporario_media_jornada",
+            "nombre": "Ayudante Temporario Media Jornada",
+            "categorias": {
+                "1": 518610,
+                "2": 518610,
+                "3": 518610,
+                "4": 518610
+            }
+        }
+    ],
+    "jornales": {
+        "personalJornalizadoHora": 10846.9,
+        "suplentePorDia": 47365.4
+    },
+    "adicionales": {
+        "retiroResiduos": 1940.9,
+        "clasificacionResiduos": 33429.7,
+        "valorVivienda": 7130.4,
+        "plusAntiguedad1": 10505.8,
+        "plusAntiguedad2": 21011.6,
+        "limpiezaCocheras": 26486.5,
+        "movimientoCoches": 39216,
+        "jardin": 26486.5,
+        "zonaDesfavorable": 50,
+        "tituloEncargadoIntegral": 10,
+        "limpiezaPileta": 44556.8,
+        "viaticos": 73765.1
+    },
+    "aportes": {
+        "jubilacion": 11,
+        "inssjp": 3,
+        "sindicato": 2,
+        "obraSocial": 3,
+        "cajaProteccionFamilia": 1,
+        "fmvdd": 1,
+        "seguroVitalicio": 0.75
+    }
+}

@@ -72,7 +72,7 @@ input {
   background: #2b3038;
   border-color: #555;
   padding: 8px;
-   width: clamp(180px, 15vw, 210px);
+  width: clamp(180px, 15vw, 210px);
 }
 
 .box h3 {
@@ -103,6 +103,7 @@ input {
   margin-right: 5px;
   height: 28px;
 }
+
 .lista-seleccion {
   width: min(280px, 100%);
   background: #2b3038;
@@ -146,6 +147,7 @@ input {
   margin: 0;
   accent-color: #3b82f6;
 }
+
 /* Paneles */
 
 .lista-seleccion {
@@ -185,6 +187,7 @@ button {
 button:hover {
   background: #465263;
 }
+
 .selector-planilla {
   margin-bottom: 10px;
 }
@@ -197,12 +200,13 @@ button:hover {
 }
 
 .selector-planilla select {
-  width: 150px;
-  height: 28px;
+  width: 260px;
+  height: 32px;
   background: #353b45;
   color: white;
   border: 1px solid #666;
-  padding-left: 5px;
+  padding-left: 8px;
+  font-size: 14px;
 }
 
 /* LOGIN */
@@ -221,7 +225,7 @@ button:hover {
   border: 1px solid #555;
   border-radius: 8px;
   padding: 25px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
 }
 
 .login-box h1 {
@@ -299,8 +303,8 @@ button:hover {
 
 
   .lista-seleccion {
-  width: clamp(220px, 18vw, 280px);
-}
+    width: clamp(220px, 18vw, 280px);
+  }
 
 
   .item-seleccion {

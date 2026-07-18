@@ -1,7 +1,5 @@
 {
   "nombre": "Planilla Salarial Junio 2026",
-  "adicionalRemunerativoMensual": 30000,
-
   "cargos": [
     {
       "id": "encargado_permanente_cv",
@@ -214,12 +212,10 @@
       }
     }
   ],
-
   "jornales": {
     "personalJornalizadoHora": 11684.3,
     "suplentePorDia": 51022
   },
-
   "adicionales": {
     "retiroResiduos": 2090.7,
     "clasificacionResiduos": 36010.5,
@@ -234,7 +230,6 @@
     "limpiezaPileta": 47996.6,
     "viaticos": 79459.8
   },
-
   "aportes": {
     "jubilacion": 11,
     "inssjp": 3,
