@@ -42,7 +42,7 @@ function Sueldos() {
   const [aporteCajaFamilia, setAporteCajaFamilia] = useState(true);
   const [aporteFMVDD, setAporteFMVDD] = useState(true);
   const [aporteSeguroVitalicio, setAporteSeguroVitalicio] = useState(true);
- 
+  const [tituloEncargadoIntegral, setTituloEncargadoIntegral] = useState(false);
 
   useEffect(() => {
     
@@ -79,7 +79,8 @@ if (antiguedad > 0) {
 }
 
 
-let bruto = sueldoBasico + adicRem + adicionalAntiguedad;
+let bruto = sueldoBasico + adicRem;
+let jornal = sueldoBasico + adicionalAntiguedad;
 
 if (antiguedad > 0) {
 
@@ -120,7 +121,44 @@ if (movimientoAutos) {
 if (viaticos) {
   bruto += planillaJunio2026.adicionales.viaticos;
 }
+if (tituloEncargadoIntegral) {
+  bruto += sueldoBasico * 
+    (planillaJunio2026.adicionales.tituloEncargadoIntegral / 100);
+}
 
+
+if (clasificacionResiduos) {
+  jornal += planillaJunio2026.adicionales.clasificacionResiduos;
+}
+
+if (retiroResiduos) {
+  jornal += planillaJunio2026.adicionales.retiroResiduos * uf;
+}
+
+if (jardin) {
+  jornal += planillaJunio2026.adicionales.jardin;
+}
+
+if (limpiezaCochera) {
+  jornal += planillaJunio2026.adicionales.limpiezaCocheras;
+}
+
+if (movimientoAutos) {
+  jornal += planillaJunio2026.adicionales.movimientoCoches;
+}
+
+if (viaticos) {
+  jornal += planillaJunio2026.adicionales.viaticos;
+}
+
+if (tituloEncargadoIntegral) {
+  jornal += sueldoBasico * 0.10;
+}
+
+let valorHora = jornal / 200;
+let totalHorasExtras =
+  (horas50 * valorHora * 1.5) +
+  (horas100 * valorHora * 2);
 let descuentos = 0;
 
 
@@ -421,6 +459,15 @@ return (
   Viáticos
 </label>
 
+<label>
+  <input
+    type="checkbox"
+    checked={tituloEncargadoIntegral}
+    onChange={(e)=>setTituloEncargadoIntegral(e.target.checked)}
+  />
+  Título Encargado Integral
+</label>
+
 </div>
 
 
@@ -516,6 +563,17 @@ return (
 
           <p>Bruto: ${bruto.toLocaleString("es-AR")}</p>
           <p>Antigüedad: ${adicionalAntiguedad.toLocaleString("es-AR")}</p>
+          <p>
+  Jornal: ${jornal.toLocaleString("es-AR")}
+</p>
+
+<p>
+  Valor hora: ${valorHora.toLocaleString("es-AR")}
+</p>
+
+<p>
+  Horas extras: ${totalHorasExtras.toLocaleString("es-AR")}
+</p>
           <p> No remunerativo: ${adicNoRem.toLocaleString("es-AR")}</p>
           <p>
   Descuentos: ${descuentos.toLocaleString("es-AR")}
