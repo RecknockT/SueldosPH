@@ -78,9 +78,17 @@ if (antiguedad > 0) {
 
 }
 
+let adicionalVivienda = 0;
+if (cargoSeleccionado.toLowerCase().includes("vivienda")) {
+  adicionalVivienda = planillaJunio2026.adicionales.valorVivienda;
+}
 
-let bruto = sueldoBasico + adicRem;
-let jornal = sueldoBasico + adicionalAntiguedad;
+let bruto = sueldoBasico + adicRem + adicionalAntiguedad + adicionalVivienda;
+let jornal =
+  sueldoBasico +
+  adicRem +
+  adicionalAntiguedad +
+  adicionalVivienda;
 
 if (antiguedad > 0) {
 
@@ -159,6 +167,8 @@ let valorHora = jornal / 200;
 let totalHorasExtras =
   (horas50 * valorHora * 1.5) +
   (horas100 * valorHora * 2);
+
+  bruto += totalHorasExtras;
 let descuentos = 0;
 
 
@@ -190,6 +200,7 @@ if (aporteSeguroVitalicio) {
   descuentos += bruto * 0.0075;
 }
 
+descuentos += adicionalVivienda;
 
 let neto = bruto - descuentos + adicNoRem;
 
