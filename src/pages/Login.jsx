@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../services/supabase'
 import { useNavigate } from 'react-router-dom'
 import "../styles/Login.css";
+
+const STORAGE_KEY = "emailRecordado";
 
 function Login() {
   const navigate = useNavigate()
@@ -9,118 +11,106 @@ function Login() {
   const [password, setPassword] = useState('')
   const [mensaje, setMensaje] = useState('')
   const [recordarme, setRecordarme] = useState(false)
+  const [loading, setLoading] = useState(false)
+
   useEffect(() => {
+    const emailGuardado = localStorage.getItem(STORAGE_KEY)
+    if (emailGuardado) {
+      setEmail(emailGuardado)
+      setRecordarme(true)
+    }
+  }, [])
 
-  const emailGuardado = localStorage.getItem("emailRecordado");
+  const ingresar = useCallback(
+    async (event) => {
+      event.preventDefault()
+      setMensaje('')
 
-  if (emailGuardado) {
+      if (!email || !password) {
+        setMensaje('Completa correo y contraseña')
+        return
+      }
 
-    setEmail(emailGuardado);
+      setLoading(true)
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+      setLoading(false)
 
-    setRecordarme(true);
+      if (error) {
+        setMensaje('Usuario o contraseña incorrectos')
+        return
+      }
 
-  }
+      if (recordarme) {
+        localStorage.setItem(STORAGE_KEY, email)
+      } else {
+        localStorage.removeItem(STORAGE_KEY)
+      }
 
-}, []);
-
-  async function ingresar() {
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
-
-    if (error) {
-  setMensaje('Usuario o contraseña incorrectos')
-  return
-}
-if (recordarme) {
-
-  localStorage.setItem("emailRecordado", email);
-
-} else {
-
-  localStorage.removeItem("emailRecordado");
-
-}
-navigate('/sueldos')
-  }
-
+      navigate('/sueldos')
+    },
+    [email, password, recordarme, navigate]
+  )
 
   return (
     <div className="login-container">
-
       <div className="login-box">
-        <div className="logo-login">
-
-  
-
-</div>
+        <div className="logo-login" />
         <h1>SueldosPH</h1>
-
         <p className="subtitulo-login">
-  Liquidación Profesional para Propiedad Horizontal
-</p>
-<div className="linea-login"></div>
+          Liquidación Profesional para Propiedad Horizontal
+        </p>
+       <div className="linea-login" />
 
-       <div className="input-group">
+        <form className="login-form" onSubmit={ingresar}>
+          <div className="input-group">
+            <label>Correo electrónico</label>
+            <input
+              type="email"
+              placeholder="nombre@empresa.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-  <label>Correo electrónico</label>
+          <div className="input-group">
+            <label>Contraseña</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
 
-  <input
-    type="email"
-    placeholder="nombre@empresa.com"
-    value={email}
-    onChange={(e) => setEmail(e.target.value)}
-  />
+          <div className="login-opciones">
+            <label className="recordarme">
+              <input
+                type="checkbox"
+                checked={recordarme}
+                onChange={(e) => setRecordarme(e.target.checked)}
+              />
+              Recordarme
+            </label>
 
-</div>
+            <a
+              href="#!"
+              className="forgot-password"
+              onClick={(e) => e.preventDefault()}
+            >
+              ¿Olvidaste tu contraseña?
+            </a>
+          </div>
 
+          <button type="submit" disabled={loading}>
+            {loading ? 'Ingresando...' : 'Ingresar'}
+          </button>
+        </form>
 
-        <div className="input-group">
-
-  <label>Contraseña</label>
-
-  <input
-    type="password"
-    placeholder="••••••••"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-  />
-
-</div>
-
-<div className="login-opciones">
-
-  <label className="recordarme">
-
-    <input
-  type="checkbox"
-  checked={recordarme}
-  onChange={(e) => setRecordarme(e.target.checked)}
-/>
-
-    Recordarme
-
-  </label>
-
-  <a href="#" onClick={(e) => e.preventDefault()}>
-    ¿Olvidaste tu contraseña?
-  </a>
-
-</div>
-
-        <button onClick={ingresar}>
-          Ingresar
-        </button>
-
-
-        {mensaje && (
-          <p>{mensaje}</p>
-        )}
-
+        {mensaje && <p>{mensaje}</p>}
       </div>
-
     </div>
   )
 }

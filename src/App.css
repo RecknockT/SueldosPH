@@ -281,7 +281,23 @@ button:hover {
   color: #ff8080;
   margin-top: 15px;
 }
+.resultado {
+  margin-top: 20px;
+  background: #2b3038;
+  border: 1px solid #555;
+  padding: 10px;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+  width: auto;
+  max-width: fit-content;
+}
 
+.resultado button {
+  width: auto;
+  padding: 8px 14px;
+}
 /* ADAPTACION PARA MONITORES PEQUEÑOS */
 
 @media (max-width: 1600px) {
@@ -330,4 +346,112 @@ button:hover {
     height: 20px;
   }
 
+}
+
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  z-index: 1000;
+}
+
+.modal-contenido {
+  width: min(840px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #161b22;
+  border: 1px solid #2e3643;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  color: #e4e4e4;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #f4f5f7;
+  font-weight: 700;
+}
+
+.modal-close {
+  border: none;
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: #ffffff;
+}
+
+.modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #161b22;
+}
+
+.modal-table th,
+.modal-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #2e3643;
+  text-align: left;
+  color: #d8dee9;
+}
+
+.modal-table th {
+  background: #1f2c41;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.modal-table td {
+  background: #171e27;
+}
+
+.modal-table tr:hover td {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.modal-totales {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #2e3643;
+  color: #d8dee9;
+}
+
+.modal-totales p {
+  margin: 6px 0;
+}
+.modal-overlay .modal-contenido {
+  background: #161b22 !important;
+  color: #e4e4e4;
+}
+
+.modal-overlay .modal-contenido .modal-totales {
+  background: transparent !important;
+}
+
+.modal-overlay .modal-contenido .modal-table {
+  background: transparent !important;
+}
+
+.modal-table tr.fila-total td {
+  font-weight: 700;
+  color: #ffdc57;
+  background: #121a24;
 }
