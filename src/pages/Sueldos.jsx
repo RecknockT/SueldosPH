@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import planillaJunio2026 from "../data/planillas/junio2026.json";
 import planillaMayo2026 from "../data/planillas/mayo2026.json";
+import "../styles/Layout.css";
 
 const planillas = {
   "Junio 2026": planillaJunio2026,
@@ -61,6 +62,7 @@ function Sueldos() {
   const [adicionales, setAdicionales] = useState(initialAdicionales);
   const [aportes, setAportes] = useState(initialAportes);
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [sidebarAbierta, setSidebarAbierta] = useState(false);
 
   const planillaActual = useMemo(
     () => planillas[planillaSeleccionada],
@@ -77,12 +79,12 @@ function Sueldos() {
   }, [planillaActual, cargoSeleccionado]);
 
   const handleInput = (field) => (event) => {
-  const raw = event.target.value;
-  setInputs((prev) => ({
-    ...prev,
-    [field]: raw === "" ? "" : Number(raw)
-  }));
-};
+    const raw = event.target.value;
+    setInputs((prev) => ({
+      ...prev,
+      [field]: raw === "" ? "" : Number(raw)
+    }));
+  };
 
   const handleToggle = (group, field) => (event) => {
     const value = event.target.checked;
@@ -91,12 +93,12 @@ function Sueldos() {
   };
 
   const handleInputFocus = (event) => {
-  event.target.select();
-};
+    event.target.select();
+  };
 
-const handleInputMouseUp = (event) => {
-  event.preventDefault();
-}; 
+  const handleInputMouseUp = (event) => {
+    event.preventDefault();
+  };
 
   const categoriaNumero = useMemo(
     () => Number(categoriaSeleccionada.replace(/\D/g, "")),
@@ -488,282 +490,353 @@ const handleInputMouseUp = (event) => {
     setMostrarModal(false);
   };
 
+  const cantidadAdicionalesActivos = useMemo(
+    () => Object.values(adicionales).filter(Boolean).length,
+    [adicionales]
+  );
+
+  const totalHorasCargadas = useMemo(
+    () => Number(inputs.horas100 || 0) + Number(inputs.horas50 || 0),
+    [inputs.horas100, inputs.horas50]
+  );
+
   return (
-    <div className="app">
-      <div className="selector-planilla">
-        <label>
-          Planilla
-          <select
-            value={planillaSeleccionada}
-            onChange={(e) => setPlanillaSeleccionada(e.target.value)}
-          >
-            {Object.keys(planillas).map((nombre) => (
-              <option key={nombre} value={nombre}>
-                {nombre}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+    <div className="layout">
+      {/* BARRA LATERAL */}
+      <aside className={sidebarAbierta ? "sidebar sidebar-abierta" : "sidebar"}>
+        <div className="marca">
+          <span className="marca-icono">$</span>
+          <div>
+            <div className="marca-nombre">SueldosPH</div>
+            <div className="marca-subtitulo">Liquidación de sueldos</div>
+          </div>
+        </div>
 
-      <h1>SueldosPH</h1>
-      <div className="subtitulo">Sistema de liquidación de sueldos</div>
-
-      <div className="datos">
-        <div className="campo cargo">
-          <h3>Cargo</h3>
-          <div className="lista-seleccion">
+        <div className="nav-seccion">
+          <span className="nav-titulo">Cargo</span>
+          <nav className="nav-lista">
             {planillaActual.cargos.map((cargo) => (
-              <div
+              <button
+                type="button"
                 key={cargo.id}
                 className={
                   cargoSeleccionado === cargo.nombre
-                    ? "item-seleccion activo"
-                    : "item-seleccion"
+                    ? "nav-item nav-item-activo"
+                    : "nav-item"
                 }
-                onClick={() => setCargoSeleccionado(cargo.nombre)}
+                onClick={() => {
+                  setCargoSeleccionado(cargo.nombre);
+                  setSidebarAbierta(false);
+                }}
               >
                 {cargo.nombre}
-              </div>
+              </button>
             ))}
-          </div>
+          </nav>
         </div>
+      </aside>
 
-        <div className="campo categoria">
-          <h3>Categoría</h3>
-          <div className="lista-seleccion categoria-lista">
-            {categorias.map((categoria) => (
-              <div
-                key={categoria}
-                className={
-                  categoriaSeleccionada === categoria
-                    ? "item-seleccion activo"
-                    : "item-seleccion"
-                }
-                onClick={() => setCategoriaSeleccionada(categoria)}
-              >
-                {categoria}
+      {sidebarAbierta && (
+        <div className="sidebar-overlay" onClick={() => setSidebarAbierta(false)} />
+      )}
+
+      {/* CONTENIDO PRINCIPAL */}
+      <div className="principal">
+        <header className="encabezado">
+          <div className="encabezado-izquierda">
+            <button
+              type="button"
+              className="btn-menu-movil"
+              onClick={() => setSidebarAbierta((prev) => !prev)}
+              aria-label="Abrir menú"
+            >
+              ☰
+            </button>
+            <div>
+              <span className="eyebrow">PANEL DE LIQUIDACIÓN</span>
+              <h1 className="titulo-pagina">{cargoSeleccionado || "Seleccioná un cargo"}</h1>
+            </div>
+          </div>
+
+          <label className="selector-planilla">
+            Planilla
+            <select
+              value={planillaSeleccionada}
+              onChange={(e) => setPlanillaSeleccionada(e.target.value)}
+            >
+              {Object.keys(planillas).map((nombre) => (
+                <option key={nombre} value={nombre}>
+                  {nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+        </header>
+
+        <main className="contenido">
+          <section className="banner-resumen">
+            <div>
+              <span className="eyebrow eyebrow-claro">RESUMEN DE LIQUIDACIÓN</span>
+              <h2>{categoriaSeleccionada} · {planillaSeleccionada}</h2>
+              <p>Revisá los datos y adicionales antes de generar el detalle de haberes.</p>
+            </div>
+            <span className="badge-banner">Sueldo básico: ${sueldoBasico.toLocaleString("es-AR")}</span>
+          </section>
+
+          <section className="stats-grid">
+            <div className="stat-card">
+              <span className="stat-label">UF cargadas</span>
+              <span className="stat-valor">{inputs.uf || 0}</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Horas extra cargadas</span>
+              <span className="stat-valor">{totalHorasCargadas}</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Adicionales activos</span>
+              <span className="stat-valor">{cantidadAdicionalesActivos}</span>
+            </div>
+          </section>
+
+          <section className="grid-dos-columnas">
+            <div className="card">
+              <h3>Datos de liquidación</h3>
+
+              <div className="campo-categoria">
+                <span className="etiqueta-chica">Categoría</span>
+                <div className="chips">
+                  {categorias.map((categoria) => (
+                    <button
+                      type="button"
+                      key={categoria}
+                      className={
+                        categoriaSeleccionada === categoria ? "chip chip-activo" : "chip"
+                      }
+                      onClick={() => setCategoriaSeleccionada(categoria)}
+                    >
+                      {categoria.replace("Categoría ", "Cat. ")}
+                    </button>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
 
-          <label>
-            UF
-            <input
-              className="chico"
-              type="number"
-              value={inputs.uf}
-              onChange={handleInput("uf")}
-              onFocus={handleInputFocus}
-              onMouseUp={handleInputMouseUp}
-            />
-          </label>
+              <div className="form-grid">
+                <label>
+                  UF
+                  <input
+                    type="number"
+                    value={inputs.uf}
+                    onChange={handleInput("uf")}
+                    onFocus={handleInputFocus}
+                    onMouseUp={handleInputMouseUp}
+                  />
+                </label>
 
-          <div className="datos-horas">
-            <label>
-              Antigüedad
-              <input
-                className="chico"
-                type="number"
-                value={inputs.antiguedad}
-                onChange={handleInput("antiguedad")}
-                onFocus={handleInputFocus}
-                onMouseUp={handleInputMouseUp}
-              />
-            </label>
+                <label>
+                  Antigüedad
+                  <input
+                    type="number"
+                    value={inputs.antiguedad}
+                    onChange={handleInput("antiguedad")}
+                    onFocus={handleInputFocus}
+                    onMouseUp={handleInputMouseUp}
+                  />
+                </label>
 
-            <label>
-              Horas 100%
-              <input
-                className="chico"
-                type="number"
-                value={inputs.horas100}
-                onChange={handleInput("horas100")}
-                onFocus={handleInputFocus}
-                onMouseUp={handleInputMouseUp}
-              />
-            </label>
+                <label>
+                  Horas 100%
+                  <input
+                    type="number"
+                    value={inputs.horas100}
+                    onChange={handleInput("horas100")}
+                    onFocus={handleInputFocus}
+                    onMouseUp={handleInputMouseUp}
+                  />
+                </label>
 
-            <label>
-              Horas 50%
-              <input
-                className="chico"
-                type="number"
-                value={inputs.horas50}
-                onChange={handleInput("horas50")}
-                onFocus={handleInputFocus}
-                onMouseUp={handleInputMouseUp}
-              />
-            </label>
+                <label>
+                  Horas 50%
+                  <input
+                    type="number"
+                    value={inputs.horas50}
+                    onChange={handleInput("horas50")}
+                    onFocus={handleInputFocus}
+                    onMouseUp={handleInputMouseUp}
+                  />
+                </label>
 
-            <label>
-              Adic. Remunerativo
-              <input
-                className="chico"
-                type="number"
-                value={inputs.adicRem}
-                onChange={handleInput("adicRem")}
-                onFocus={handleInputFocus}
-                onMouseUp={handleInputMouseUp}
-              />
-            </label>
+                <label>
+                  Adic. Remunerativo
+                  <input
+                    type="number"
+                    value={inputs.adicRem}
+                    onChange={handleInput("adicRem")}
+                    onFocus={handleInputFocus}
+                    onMouseUp={handleInputMouseUp}
+                  />
+                </label>
 
-            <label>
-              Adic. No Remunerativo
-              <input
-                className="chico"
-                type="number"
-                value={inputs.adicNoRem}
-                onChange={handleInput("adicNoRem")}
-                onFocus={handleInputFocus}
-                onMouseUp={handleInputMouseUp}
-              />
-            </label>
-          </div>
-        </div>
-      </div>
+                <label>
+                  Adic. No Remunerativo
+                  <input
+                    type="number"
+                    value={inputs.adicNoRem}
+                    onChange={handleInput("adicNoRem")}
+                    onFocus={handleInputFocus}
+                    onMouseUp={handleInputMouseUp}
+                  />
+                </label>
+              </div>
+            </div>
 
-      <div className="bloques">
-        <div className="box adicionales">
-          <h3>Adicionales</h3>
-          <label>
-            <input
-              type="checkbox"
-              checked={adicionales.clasificacionResiduos}
-              onChange={handleToggle("adicionales", "clasificacionResiduos")}
-            />
-            C. Residuos
-          </label>
+            <div className="card">
+              <h3>Adicionales</h3>
+              <div className="checklist">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={adicionales.clasificacionResiduos}
+                    onChange={handleToggle("adicionales", "clasificacionResiduos")}
+                  />
+                  Clasificación de residuos
+                </label>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={adicionales.retiroResiduos}
-              onChange={handleToggle("adicionales", "retiroResiduos")}
-            />
-            R. Residuos
-          </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={adicionales.retiroResiduos}
+                    onChange={handleToggle("adicionales", "retiroResiduos")}
+                  />
+                  Retiro de residuos
+                </label>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={adicionales.jardin}
-              onChange={handleToggle("adicionales", "jardin")}
-            />
-            Jardín
-          </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={adicionales.jardin}
+                    onChange={handleToggle("adicionales", "jardin")}
+                  />
+                  Jardín
+                </label>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={adicionales.limpiezaCochera}
-              onChange={handleToggle("adicionales", "limpiezaCochera")}
-            />
-            Limpieza de cochera
-          </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={adicionales.limpiezaCochera}
+                    onChange={handleToggle("adicionales", "limpiezaCochera")}
+                  />
+                  Limpieza de cochera
+                </label>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={adicionales.movimientoAutos}
-              onChange={handleToggle("adicionales", "movimientoAutos")}
-            />
-            Movimiento de autos
-          </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={adicionales.movimientoAutos}
+                    onChange={handleToggle("adicionales", "movimientoAutos")}
+                  />
+                  Movimiento de autos
+                </label>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={adicionales.viaticos}
-              onChange={handleToggle("adicionales", "viaticos")}
-            />
-            Viáticos
-          </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={adicionales.viaticos}
+                    onChange={handleToggle("adicionales", "viaticos")}
+                  />
+                  Viáticos
+                </label>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={adicionales.tituloEncargadoIntegral}
-              onChange={handleToggle("adicionales", "tituloEncargadoIntegral")}
-            />
-            Título Encargado Integral
-          </label>
-        </div>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={adicionales.tituloEncargadoIntegral}
+                    onChange={handleToggle("adicionales", "tituloEncargadoIntegral")}
+                  />
+                  Título Encargado Integral
+                </label>
+              </div>
+            </div>
+          </section>
 
-        <div className="box">
-          <h3>Aportes</h3>
-          <label>
-            <input
-              type="checkbox"
-              checked={aportes.aporteJubilatorio}
-              onChange={handleToggle("aportes", "aporteJubilatorio")}
-            />
-            Jubilatorio 11%
-          </label>
+          <section className="card">
+            <div className="card-header-acciones">
+              <h3>Aportes</h3>
+              <div className="acciones">
+                <button type="button" className="btn-secundario" onClick={reset}>
+                  Reiniciar
+                </button>
+                <button type="button" className="btn-primario" onClick={handleCalcular}>
+                  Calcular
+                </button>
+              </div>
+            </div>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={aportes.aporteINSSJP}
-              onChange={handleToggle("aportes", "aporteINSSJP")}
-            />
-            INSSJP 3%
-          </label>
+            <div className="checklist checklist-aportes">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={aportes.aporteJubilatorio}
+                  onChange={handleToggle("aportes", "aporteJubilatorio")}
+                />
+                Jubilatorio 11%
+              </label>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={aportes.aporteSindicato}
-              onChange={handleToggle("aportes", "aporteSindicato")}
-            />
-            Sindicato 2%
-          </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={aportes.aporteINSSJP}
+                  onChange={handleToggle("aportes", "aporteINSSJP")}
+                />
+                INSSJP 3%
+              </label>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={aportes.aporteObraSocial}
-              onChange={handleToggle("aportes", "aporteObraSocial")}
-            />
-            Obra social 3%
-          </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={aportes.aporteSindicato}
+                  onChange={handleToggle("aportes", "aporteSindicato")}
+                />
+                Sindicato 2%
+              </label>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={aportes.aporteCajaFamilia}
-              onChange={handleToggle("aportes", "aporteCajaFamilia")}
-            />
-            Caja protección a la familia 1%
-          </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={aportes.aporteObraSocial}
+                  onChange={handleToggle("aportes", "aporteObraSocial")}
+                />
+                Obra social 3%
+              </label>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={aportes.aporteFMVDD}
-              onChange={handleToggle("aportes", "aporteFMVDD")}
-            />
-            FMVDD 1%
-          </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={aportes.aporteCajaFamilia}
+                  onChange={handleToggle("aportes", "aporteCajaFamilia")}
+                />
+                Caja protección a la familia 1%
+              </label>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={aportes.aporteSeguroVitalicio}
-              onChange={handleToggle("aportes", "aporteSeguroVitalicio")}
-            />
-            Seguro vitalicio 0,75%
-          </label>
-        </div>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={aportes.aporteFMVDD}
+                  onChange={handleToggle("aportes", "aporteFMVDD")}
+                />
+                FMVDD 1%
+              </label>
 
-        <div className="resultado">
-          <button type="button" onClick={handleCalcular}>
-            CALCULAR
-          </button>
-          <button type="button" onClick={reset}>
-            REINICIAR
-          </button>
-        </div>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={aportes.aporteSeguroVitalicio}
+                  onChange={handleToggle("aportes", "aporteSeguroVitalicio")}
+                />
+                Seguro vitalicio 0,75%
+              </label>
+            </div>
+          </section>
+        </main>
       </div>
 
       {mostrarModal && (
@@ -786,30 +859,30 @@ const handleInputMouseUp = (event) => {
                 </tr>
               </thead>
               <tbody>
-  {detalleHaberes.map((item) => (
-    <tr
-      key={item.detalle}
-      className={item.detalle === "TOTAL HABERES" ? "fila-total" : ""}
-    >
-      <td>{item.detalle}</td>
-      <td>{item.unidad}</td>
-      <td>{item.haber.toLocaleString("es-AR")}</td>
-      <td>{item.descuento ? item.descuento.toLocaleString("es-AR") : ""}</td>
-    </tr>
-  ))}
+                {detalleHaberes.map((item) => (
+                  <tr
+                    key={item.detalle}
+                    className={item.detalle === "TOTAL HABERES" ? "fila-total" : ""}
+                  >
+                    <td>{item.detalle}</td>
+                    <td>{item.unidad}</td>
+                    <td>{item.haber.toLocaleString("es-AR")}</td>
+                    <td>{item.descuento ? item.descuento.toLocaleString("es-AR") : ""}</td>
+                  </tr>
+                ))}
 
-  {detalleDescuentos.map((item) => (
-    <tr
-      key={item.detalle}
-      className={item.detalle === "TOTAL DESCUENTOS" ? "fila-total" : ""}
-    >
-      <td>{item.detalle}</td>
-      <td>{item.unidad}</td>
-      <td>{item.haber ? item.haber.toLocaleString("es-AR") : ""}</td>
-      <td>{item.descuento.toLocaleString("es-AR")}</td>
-    </tr>
-  ))}
-</tbody>
+                {detalleDescuentos.map((item) => (
+                  <tr
+                    key={item.detalle}
+                    className={item.detalle === "TOTAL DESCUENTOS" ? "fila-total" : ""}
+                  >
+                    <td>{item.detalle}</td>
+                    <td>{item.unidad}</td>
+                    <td>{item.haber ? item.haber.toLocaleString("es-AR") : ""}</td>
+                    <td>{item.descuento.toLocaleString("es-AR")}</td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
 
             <div className="modal-totales">
