@@ -679,3 +679,146 @@ select:focus-visible {
     transition: none !important;
   }
 }
+/*
+   SueldosPH — ajuste para trabajar con la ventana a media pantalla en 1080p
+   Pegá este bloque AL FINAL de tu layout.css actual.
+*/
+
+/*
+  Entre 861 y 1100 px de ancho sigue siendo una vista de escritorio compacta:
+  no se apilan las tarjetas ni las estadísticas. A 860 px o menos se conserva
+  tu menú lateral móvil actual.
+*/
+@media (min-width: 861px) and (max-width: 1100px) {
+  .sidebar {
+    width: 250px;
+    padding: 18px 12px;
+    gap: 20px;
+  }
+
+  .marca {
+    gap: 10px;
+    padding: 0 4px;
+  }
+
+  .nav-seccion {
+    gap: 8px;
+  }
+
+  .nav-item {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+
+  .encabezado {
+    gap: 8px;
+    padding: 16px 24px;
+  }
+
+  .encabezado-izquierda {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .titulo-pagina {
+    font-size: 1.15rem;
+  }
+
+  .selector-planilla {
+    flex-shrink: 0;
+    gap: 6px;
+  }
+
+  .selector-planilla select {
+    min-width: 0;
+    padding: 7px 10px;
+  }
+
+  .contenido {
+    padding: 16px 24px 24px;
+    gap: 14px;
+  }
+
+  .banner-resumen {
+    padding: 18px 22px;
+  }
+
+  .banner-resumen h2 {
+    font-size: 1.18rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .stat-card {
+    min-width: 0;
+    padding: 14px 16px;
+  }
+
+  .stat-valor {
+    font-size: 1.35rem;
+  }
+
+  .grid-dos-columnas {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .card {
+    min-width: 0;
+    padding: 16px 18px;
+    border-radius: 16px;
+  }
+
+  .card h3,
+  .card-header-acciones {
+    margin-bottom: 12px;
+  }
+
+  .campo-categoria {
+    margin-bottom: 12px;
+  }
+
+  .chips {
+    gap: 6px;
+  }
+
+  .chip {
+    padding: 6px 11px;
+  }
+
+  .form-grid {
+    gap: 10px;
+  }
+
+  .form-grid input,
+  .card input[type="number"] {
+    min-width: 0;
+    width: 80%;
+    padding: 7px 9px;
+  }
+
+  .checklist {
+    gap: 9px;
+  }
+
+  .checklist label {
+    gap: 8px;
+    font-size: 0.8rem;
+  }
+
+  .checklist-aportes {
+    gap: 9px;
+  }
+
+  .acciones {
+    gap: 8px;
+  }
+
+  .btn-primario,
+  .btn-secundario {
+    padding: 8px 14px;
+  }
+}
