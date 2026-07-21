@@ -583,13 +583,49 @@ select:focus-visible {
 /* ============================================
    RESPONSIVE
    ============================================ */
-@media (max-width: 960px) {
+@media (max-width: 760px) {
   .grid-dos-columnas {
     grid-template-columns: 1fr;
   }
 
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 761px) and (max-height: 1100px) {
+  .encabezado {
+    padding: 14px 24px;
+  }
+
+  .contenido {
+    padding: 16px 24px 24px;
+    gap: 14px;
+  }
+
+  .banner-resumen {
+    padding: 18px 22px;
+  }
+
+  .stat-card {
+    padding: 14px 16px;
+  }
+
+  .card {
+    padding: 16px 18px;
+  }
+
+  .card h3,
+  .card-header-acciones {
+    margin-bottom: 12px;
+  }
+
+  .campo-categoria {
+    margin-bottom: 12px;
+  }
+
+  .checklist {
+    gap: 8px;
   }
 }
 
