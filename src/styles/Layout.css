@@ -1,8 +1,3 @@
-/* ============================================
-   SueldosPH — tema oscuro, panel de control
-   Agregar/reemplazar en la hoja de estilos del componente
-   ============================================ */
-
 * {
   box-sizing: border-box;
 }
@@ -21,14 +16,14 @@
 
 /* ---------- BARRA LATERAL ---------- */
 .sidebar {
-  width: 280px;
+  width: 300px;
   flex-shrink: 0;
-  background: #10141f;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 24px 16px;
   display: flex;
   flex-direction: column;
   gap: 28px;
+  padding: 24px 16px;
+  background: #10141f;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .marca {
@@ -39,56 +34,56 @@
 }
 
 .marca-icono {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
   width: 40px;
   height: 40px;
   border-radius: 12px;
   background: linear-gradient(135deg, #5b7cff, #8a5cff);
   color: #fff;
-  font-weight: 700;
   font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  font-weight: 700;
   box-shadow: 0 6px 16px rgba(91, 124, 255, 0.35);
 }
 
 .marca-nombre {
-  font-weight: 700;
-  font-size: 1rem;
   color: #f5f6fb;
+  font-size: 1rem;
+  font-weight: 700;
   letter-spacing: 0.01em;
 }
 
 .marca-subtitulo {
-  font-size: 0.76rem;
   color: #6b7280;
+  font-size: 0.76rem;
 }
 
 .nav-seccion {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 10px;
   min-height: 0;
-  flex: 1;
   overflow: hidden;
 }
 
 .nav-titulo {
+  padding: 0 10px;
+  color: #565f75;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #565f75;
-  padding: 0 10px;
 }
 
 .nav-lista {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  overflow-y: auto;
   padding-right: 4px;
+  overflow-y: auto;
 }
 
 .nav-lista::-webkit-scrollbar {
@@ -105,16 +100,16 @@
 }
 
 .nav-item {
-  text-align: left;
+  padding: 10px 12px;
   border: none;
   border-left: 2px solid transparent;
-  background: transparent;
-  padding: 10px 12px;
   border-radius: 8px;
-  font-size: 0.86rem;
+  background: transparent;
   color: #9aa2b4;
   cursor: pointer;
+  font-size: 0.86rem;
   line-height: 1.3;
+  text-align: left;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -124,10 +119,10 @@
 }
 
 .nav-item-activo {
+  border-left-color: #5b7cff;
   background: rgba(91, 124, 255, 0.14);
   color: #a9beff;
   font-weight: 600;
-  border-left-color: #5b7cff;
 }
 
 .nav-item:focus-visible,
@@ -146,24 +141,24 @@ select:focus-visible {
 
 /* ---------- CONTENIDO PRINCIPAL ---------- */
 .principal {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
+  min-width: 0;
 }
 
 .encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   padding: 22px 32px;
   background: rgba(16, 20, 31, 0.7);
-  backdrop-filter: blur(6px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  backdrop-filter: blur(6px);
 }
 
 .encabezado-izquierda {
@@ -174,12 +169,12 @@ select:focus-visible {
 
 .eyebrow {
   display: block;
+  margin-bottom: 3px;
+  color: #6b7280;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: #6b7280;
-  margin-bottom: 3px;
 }
 
 .eyebrow-claro {
@@ -188,92 +183,92 @@ select:focus-visible {
 
 .titulo-pagina {
   margin: 0;
+  color: #f5f6fb;
   font-size: 1.35rem;
   font-weight: 700;
-  color: #f5f6fb;
   letter-spacing: -0.01em;
 }
 
 .btn-menu-movil {
   display: none;
-  background: transparent;
   border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
+  background: transparent;
   color: #eef0f6;
+  cursor: pointer;
+  font-size: 1.25rem;
 }
 
 .selector-planilla {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.82rem;
   color: #9aa2b4;
+  font-size: 0.82rem;
   font-weight: 600;
 }
 
 .selector-planilla select {
+  padding: 8px 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 0.85rem;
   background: #171c2b;
   color: #eef0f6;
+  font-size: 0.85rem;
 }
 
 .contenido {
-  padding: 24px 32px 40px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding: 24px 32px 40px;
 }
 
 /* ---------- BANNER RESUMEN ---------- */
 .banner-resumen {
-  background: linear-gradient(120deg, #3852d1, #5b7cff 55%, #7c5cff);
-  color: #fff;
-  border-radius: 18px;
-  padding: 26px 28px;
+  position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  flex-wrap: wrap;
-  box-shadow: 0 18px 40px -18px rgba(59, 90, 255, 0.55);
-  position: relative;
+  padding: 26px 28px;
   overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(120deg, #3852d1, #5b7cff 55%, #7c5cff);
+  color: #fff;
+  box-shadow: 0 18px 40px -18px rgba(59, 90, 255, 0.55);
 }
 
 .banner-resumen::after {
-  content: "";
   position: absolute;
   inset: 0;
+  content: "";
   background: radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.18), transparent 55%);
   pointer-events: none;
 }
 
 .banner-resumen h2 {
+  position: relative;
   margin: 4px 0 6px;
   font-size: 1.3rem;
-  position: relative;
 }
 
 .banner-resumen p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.85);
   position: relative;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
 }
 
 .badge-banner {
-  background: rgba(255, 255, 255, 0.16);
+  position: relative;
+  padding: 8px 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 999px;
-  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.16);
   font-size: 0.85rem;
   font-weight: 600;
   white-space: nowrap;
-  position: relative;
 }
 
 /* ---------- STATS ---------- */
@@ -284,13 +279,13 @@ select:focus-visible {
 }
 
 .stat-card {
-  background: #171c2b;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
-  padding: 18px 20px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  padding: 18px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  background: #171c2b;
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
 
@@ -300,14 +295,14 @@ select:focus-visible {
 }
 
 .stat-label {
-  font-size: 0.76rem;
   color: #7d8598;
+  font-size: 0.76rem;
 }
 
 .stat-valor {
+  color: #f5f6fb;
   font-size: 1.55rem;
   font-weight: 700;
-  color: #f5f6fb;
   font-variant-numeric: tabular-nums;
 }
 
@@ -319,26 +314,26 @@ select:focus-visible {
 }
 
 .card {
-  background: #171c2b;
+  padding: 22px 24px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 18px;
-  padding: 22px 24px;
+  background: #171c2b;
 }
 
 .card h3 {
   margin: 0 0 16px;
-  font-size: 0.98rem;
   color: #f5f6fb;
+  font-size: 0.98rem;
   font-weight: 600;
 }
 
 .card-header-acciones {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
   gap: 12px;
+  margin-bottom: 16px;
 }
 
 .card-header-acciones h3 {
@@ -346,31 +341,35 @@ select:focus-visible {
 }
 
 .etiqueta-chica {
-  font-size: 0.76rem;
-  color: #7d8598;
-  font-weight: 600;
   display: block;
   margin-bottom: 8px;
+  color: #7d8598;
+  font-size: 0.76rem;
+  font-weight: 600;
 }
 
 .campo-categoria {
   margin-bottom: 18px;
 }
 
-.chips {
+.chips,
+.acciones {
   display: flex;
   gap: 8px;
+}
+
+.chips {
   flex-wrap: wrap;
 }
 
 .chip {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 999px;
   padding: 7px 14px;
-  font-size: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
   color: #9aa2b4;
   cursor: pointer;
+  font-size: 0.8rem;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
@@ -380,8 +379,8 @@ select:focus-visible {
 }
 
 .chip-activo {
-  background: linear-gradient(120deg, #5b7cff, #7c5cff);
   border-color: transparent;
+  background: linear-gradient(120deg, #5b7cff, #7c5cff);
   color: #fff;
   font-weight: 600;
 }
@@ -397,19 +396,19 @@ select:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 0.78rem;
   color: #9aa2b4;
+  font-size: 0.78rem;
   font-weight: 600;
 }
 
 .form-grid input,
 .card input[type="number"] {
+  padding: 9px 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 9px;
-  padding: 9px 10px;
-  font-size: 0.9rem;
-  color: #eef0f6;
   background: #10141f;
+  color: #eef0f6;
+  font-size: 0.9rem;
   transition: border-color 0.15s ease;
 }
 
@@ -434,10 +433,10 @@ select:focus-visible {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 0.86rem;
   color: #c4cadb;
-  font-weight: 500;
   cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 500;
 }
 
 .checklist input[type="checkbox"] {
@@ -447,18 +446,17 @@ select:focus-visible {
 }
 
 .acciones {
-  display: flex;
   gap: 10px;
 }
 
 .btn-primario,
 .btn-secundario {
-  border-radius: 10px;
   padding: 10px 18px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
   font-size: 0.84rem;
   font-weight: 600;
-  cursor: pointer;
-  border: 1px solid transparent;
   transition: filter 0.15s ease, background 0.15s ease;
 }
 
@@ -473,9 +471,9 @@ select:focus-visible {
 }
 
 .btn-secundario {
+  border-color: rgba(255, 255, 255, 0.12);
   background: transparent;
   color: #c4cadb;
-  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .btn-secundario:hover {
@@ -486,23 +484,23 @@ select:focus-visible {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(6, 8, 14, 0.65);
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  z-index: 50;
+  background: rgba(6, 8, 14, 0.65);
 }
 
 .modal-contenido {
-  background: #131826;
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  padding: 24px;
+  overflow-y: auto;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
-  max-width: 640px;
-  width: 100%;
-  max-height: 85vh;
-  overflow-y: auto;
-  padding: 24px;
+  background: #131826;
   box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
 }
 
@@ -521,9 +519,9 @@ select:focus-visible {
 .modal-close {
   border: none;
   background: transparent;
-  font-size: 1.4rem;
-  cursor: pointer;
   color: #7d8598;
+  cursor: pointer;
+  font-size: 1.4rem;
 }
 
 .modal-close:hover {
@@ -541,14 +539,14 @@ select:focus-visible {
 }
 
 .modal-table th {
-  text-align: left;
+  padding: 10px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: #171c2b !important;
   color: #a9b0c4 !important;
   font-size: 0.7rem;
-  text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 10px 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: left;
+  text-transform: uppercase;
 }
 
 .modal-table td {
@@ -558,36 +556,31 @@ select:focus-visible {
 }
 
 .fila-total td {
-  font-weight: 700;
-  color: #f5f6fb;
   border-top: 2px solid rgba(255, 255, 255, 0.12);
+  color: #f5f6fb;
+  font-weight: 700;
 }
 
 .modal-totales {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 0.9rem;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   color: #c4cadb;
+  font-size: 0.9rem;
 }
 
 .modal-totales p:last-child {
-  font-weight: 700;
-  font-size: 1.08rem;
   color: #a9beff;
+  font-size: 1.08rem;
+  font-weight: 700;
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
+/* ---------- RESPONSIVE ---------- */
 @media (max-width: 760px) {
-  .grid-dos-columnas {
-    grid-template-columns: 1fr;
-  }
-
+  .grid-dos-columnas,
   .stats-grid {
     grid-template-columns: 1fr;
   }
@@ -599,8 +592,8 @@ select:focus-visible {
   }
 
   .contenido {
-    padding: 16px 24px 24px;
     gap: 14px;
+    padding: 16px 24px 24px;
   }
 
   .banner-resumen {
@@ -646,10 +639,10 @@ select:focus-visible {
     position: fixed;
     top: 0;
     left: 0;
+    z-index: 30;
     height: 100vh;
     transform: translateX(-100%);
     transition: transform 0.2s ease;
-    z-index: 30;
   }
 
   .sidebar-abierta {
@@ -658,42 +651,24 @@ select:focus-visible {
   }
 
   .sidebar-overlay {
-    display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.55);
     z-index: 25;
+    display: block;
+    background: rgba(0, 0, 0, 0.55);
   }
 
-  .checklist-aportes {
-    grid-template-columns: 1fr;
-  }
-
+  .checklist-aportes,
   .form-grid {
     grid-template-columns: 1fr;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    transition: none !important;
-  }
-}
-/*
-   SueldosPH — ajuste para trabajar con la ventana a media pantalla en 1080p
-   Pegá este bloque AL FINAL de tu layout.css actual.
-*/
-
-/*
-  Entre 861 y 1100 px de ancho sigue siendo una vista de escritorio compacta:
-  no se apilan las tarjetas ni las estadísticas. A 860 px o menos se conserva
-  tu menú lateral móvil actual.
-*/
 @media (min-width: 861px) and (max-width: 1100px) {
   .sidebar {
-    width: 250px;
-    padding: 18px 12px;
+    width: 270px;
     gap: 20px;
+    padding: 18px 12px;
   }
 
   .marca {
@@ -735,8 +710,8 @@ select:focus-visible {
   }
 
   .contenido {
-    padding: 16px 24px 24px;
     gap: 14px;
+    padding: 16px 24px 24px;
   }
 
   .banner-resumen {
@@ -795,8 +770,8 @@ select:focus-visible {
 
   .form-grid input,
   .card input[type="number"] {
-    min-width: 0;
     width: 80%;
+    min-width: 0;
     padding: 7px 9px;
   }
 
@@ -814,11 +789,75 @@ select:focus-visible {
   }
 
   .acciones {
+    flex-direction: column-reverse;
+    align-items: flex-end;
     gap: 8px;
   }
 
   .btn-primario,
   .btn-secundario {
     padding: 8px 14px;
+  }
+
+  .card:has(.checklist-aportes) {
+    position: relative;
+   
+  }
+
+  .card:has(.checklist-aportes) .card-header-acciones {
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+
+  .card-header-acciones .acciones {
+    padding: 6px;
+    gap: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 13px;
+    background: #10141f;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.03);
+  }
+
+  .card-header-acciones .acciones .btn-primario,
+  .card-header-acciones .acciones .btn-secundario {
+    min-width: 112px;
+    padding: 7px 12px;
+  }
+
+  .card:has(.checklist-aportes) .checklist-aportes {
+    gap: 8px 18px;
+  }
+
+  .card:has(.checklist-aportes) .checklist label {
+    font-size: 0.8rem;
+  }
+
+  .card:has(.checklist-aportes) .card-header-acciones .acciones {
+    position: absolute;
+    top: 50%;
+    right: 18px;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    transform: translateY(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+@media (min-width: 1101px) {
+  .card:has(.checklist-aportes) {
+    position: relative;
+  }
+
+  .card:has(.checklist-aportes) .acciones {
+    position: absolute;
+    top: 50%;
+    right: 24px;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    transform: translateY(-50%);
   }
 }

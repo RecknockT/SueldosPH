@@ -677,7 +677,7 @@ function Sueldos() {
                 </label>
 
                 <label>
-                  Adic. No Remunerativo
+                  Adic. No Remun.
                   <input
                     type="number"
                     value={inputs.adicNoRem}
