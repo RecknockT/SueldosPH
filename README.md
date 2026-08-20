@@ -18,7 +18,8 @@ npm run dev
 | `npm run build` | Build de producción |
 | `npm start` | Sirve el build |
 | `npm run lint` | ESLint |
-| `npm test` | Tests de la lógica de liquidación (`node --test`) |
+| `npm test` | Tests del cálculo y del parser de planillas (`node --test`) |
+| `npm run sync:planillas` | Baja las escalas salariales de SUTERH |
 
 ## Variables de entorno
 
@@ -56,7 +57,10 @@ lib/
   planillas.ts        Carga y tipado de las planillas
   format.ts           Formato de moneda es-AR
   supabase/           Clientes de Supabase (browser / server / proxy)
-data/planillas/       Escalas salariales por período (JSON)
+data/planillas/       Escalas salariales por período (JSON generado)
+scripts/
+  parse-planilla.ts   Parser de las tablas de SUTERH
+  sync-planillas.ts   Descarga y escritura de los JSON
 proxy.ts              Refresco de sesión y guarda de rutas privadas
 ```
 
@@ -74,12 +78,35 @@ segunda barrera.
 Los usuarios se dan de alta desde el panel de Supabase (Authentication → Users);
 la app no tiene registro público.
 
-## Agregar una planilla nueva
+## Planillas salariales
 
-1. Copiar el JSON del período a `data/planillas/`, con la misma forma que
-   `junio2026.json`.
-2. Sumar la entrada en `PLANILLAS` dentro de `lib/planillas.ts`. La primera clave
-   del objeto es la que queda seleccionada por defecto.
+Las escalas se sincronizan desde
+[suterh.org.ar/planillas-salariales](https://suterh.org.ar/planillas-salariales/).
+No se editan a mano.
+
+```bash
+npm run sync:planillas            # año corriente
+npm run sync:planillas -- 2025 2026
+```
+
+El script baja cada período, lo parsea y escribe un JSON en `data/planillas/`,
+más el manifiesto `data/planillas/index.ts` que consume `lib/planillas.ts`. La
+primera clave del manifiesto — el período más reciente — es la seleccionada por
+defecto en la app.
+
+Además hay una GitHub Action (`.github/workflows/sync-planillas.yml`) que corre
+los lunes y **abre un PR** si aparecen planillas nuevas o cambian montos. Nunca
+commitea a `main` directamente: el diff es la revisión antes de liquidar con
+datos nuevos.
+
+Dos cosas a tener en cuenta:
+
+- **Los aportes no vienen de SUTERH.** Jubilatorio, INSSJP, obra social y demás
+  son alícuotas de ley y viven en `APORTES_POR_LEY`, en `scripts/parse-planilla.ts`.
+- **El parser es estricto a propósito.** Si el sitio cambia el nombre de una
+  función, agrega un concepto o deja un importe ilegible, falla con un mensaje
+  concreto en vez de escribir una planilla incompleta. Cuando eso pase, hay que
+  actualizar las tablas de mapeo en `scripts/parse-planilla.ts`.
 
 ## Cálculo
 

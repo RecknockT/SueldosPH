@@ -1,5 +1,4 @@
-import junio2026 from "@/data/planillas/junio2026.json"
-import mayo2026 from "@/data/planillas/mayo2026.json"
+import { PLANILLAS_JSON } from "@/data/planillas/index"
 
 export type Cargo = {
   id: string
@@ -46,17 +45,16 @@ export type Planilla = {
 }
 
 /**
- * Planillas disponibles, de la más reciente a la más vieja.
- * Para sumar un período: agregar el JSON en data/planillas y una entrada acá.
+ * Las planillas salen de data/planillas, que sincroniza scripts/sync-planillas.ts
+ * desde suterh.org.ar. No se editan a mano: `npm run sync:planillas` las baja,
+ * y el diff de git es la revisión antes de liquidar con montos nuevos.
  */
-export const PLANILLAS = {
-  "Junio 2026": junio2026 as Planilla,
-  "Mayo 2026": mayo2026 as Planilla,
-} satisfies Record<string, Planilla>
+export const PLANILLAS = PLANILLAS_JSON as unknown as Record<string, Planilla>
 
-export type PlanillaKey = keyof typeof PLANILLAS
+export type PlanillaKey = keyof typeof PLANILLAS_JSON
 
-export const PLANILLA_KEYS = Object.keys(PLANILLAS) as PlanillaKey[]
+/** En orden: la más reciente primero, tal como las deja el manifiesto. */
+export const PLANILLA_KEYS = Object.keys(PLANILLAS_JSON) as PlanillaKey[]
 
 export const PLANILLA_POR_DEFECTO: PlanillaKey = PLANILLA_KEYS[0]
 

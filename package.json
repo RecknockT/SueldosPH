@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "node --test \"lib/**/*.test.ts\""
+    "test": "node --test \"lib/**/*.test.ts\" \"scripts/**/*.test.ts\"",
+    "sync:planillas": "node scripts/sync-planillas.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
@@ -31,6 +32,7 @@
     "@types/react-dom": "^19.2.4",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.1",
+    "node-html-parser": "^9.0.1",
     "postcss": "^8.5.26",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
