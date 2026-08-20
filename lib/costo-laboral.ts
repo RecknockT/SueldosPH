@@ -111,56 +111,57 @@ export function calcularCostoLaboral(
   const porcentaje = (alicuota: number) => (base * alicuota) / 100
   const porcentajeNacional = (alicuota: number) => (baseNacional * alicuota) / 100
 
-  // El orden replica el del recibo: se lee por columnas, de a dos.
+  // El orden define el corte en dos columnas del recibo: a la izquierda las de
+  // ley y ART, a la derecha las de convenio y los importes fijos.
   const contribuciones: FilaContribucion[] = [
     {
       id: "jubilacionSipa",
-      detalle: "JUBILACIÓN (SIPA)",
+      detalle: "Jubilación (SIPA)",
       alicuota: ALICUOTAS.jubilacionSipa,
       base: baseNacional,
       monto: porcentajeNacional(ALICUOTAS.jubilacionSipa),
     },
     {
-      id: "seguroVidaObligatorio",
-      detalle: "SEGURO DE VIDA OBLIGATORIO",
-      alicuota: null,
-      base: null,
-      monto: seguro(config.seguroVidaObligatorio),
-    },
-    {
       id: "inssjp",
-      detalle: "I.N.S.S.J.P (LEY 19.032)",
+      detalle: "INSSJP Ley 19.032",
       alicuota: ALICUOTAS.inssjp,
       base: baseNacional,
       monto: porcentajeNacional(ALICUOTAS.inssjp),
     },
     {
-      id: "artAlicuota",
-      detalle: "ART (ALÍCUOTA)",
-      alicuota: seguro(config.artAlicuota),
-      base,
-      monto: porcentaje(seguro(config.artAlicuota)),
-    },
-    {
       id: "asignacionesFamiliares",
-      detalle: "ASIGNACIONES FAMILIARES (SUAF)",
+      detalle: "Asignaciones familiares (SUAF)",
       alicuota: ALICUOTAS.asignacionesFamiliares,
       base: baseNacional,
       monto: porcentajeNacional(ALICUOTAS.asignacionesFamiliares),
     },
     {
-      id: "cajaProteccionFamilia",
-      detalle: "CAJA PROTECCIÓN FAMILIA",
-      alicuota: ALICUOTAS.cajaProteccionFamilia,
-      base,
-      monto: porcentaje(ALICUOTAS.cajaProteccionFamilia),
-    },
-    {
       id: "obraSocial",
-      detalle: "OBRA SOCIAL",
+      detalle: "Obra social",
       alicuota: ALICUOTAS.obraSocial,
       base,
       monto: porcentaje(ALICUOTAS.obraSocial),
+    },
+    {
+      id: "artAlicuota",
+      detalle: "ART · alícuota",
+      alicuota: seguro(config.artAlicuota),
+      base,
+      monto: porcentaje(seguro(config.artAlicuota)),
+    },
+    {
+      id: "artMontoFijo",
+      detalle: "ART · suma fija",
+      alicuota: null,
+      base: null,
+      monto: seguro(config.artMontoFijo),
+    },
+    {
+      id: "cajaProteccionFamilia",
+      detalle: "Caja protección a la familia",
+      alicuota: ALICUOTAS.cajaProteccionFamilia,
+      base,
+      monto: porcentaje(ALICUOTAS.cajaProteccionFamilia),
     },
     {
       id: "fateryhFmvdd",
@@ -170,25 +171,25 @@ export function calcularCostoLaboral(
       monto: porcentaje(ALICUOTAS.fateryhFmvdd),
     },
     {
-      id: "contribucionSolidaria",
-      detalle: "CONTRIBUCIÓN SOLIDARIA",
-      alicuota: null,
-      base: null,
-      monto: Math.max(0, seguro(config.contribucionSolidaria)),
-    },
-    {
-      id: "artMontoFijo",
-      detalle: "ART (MONTO FIJO)",
-      alicuota: null,
-      base: null,
-      monto: seguro(config.artMontoFijo),
-    },
-    {
       id: "seracarh",
       detalle: "SERACARH",
       alicuota: ALICUOTAS.seracarh,
       base,
       monto: porcentaje(ALICUOTAS.seracarh),
+    },
+    {
+      id: "contribucionSolidaria",
+      detalle: "Contribución solidaria",
+      alicuota: null,
+      base: null,
+      monto: Math.max(0, seguro(config.contribucionSolidaria)),
+    },
+    {
+      id: "seguroVidaObligatorio",
+      detalle: "Seguro colectivo de vida obligatorio",
+      alicuota: null,
+      base: null,
+      monto: seguro(config.seguroVidaObligatorio),
     },
   ]
 
@@ -203,4 +204,37 @@ export function calcularCostoLaboral(
     noRemunerativo: noRem,
     costoTotal: base + noRem + totalContribuciones,
   }
+}
+
+export type ReferenciaBase = {
+  /** "a", "b", … en el orden en que aparecen las bases distintas. */
+  letra: string
+  base: number
+}
+
+/**
+ * Agrupa las bases distintas y les asigna una letra.
+ *
+ * En el recibo la columna de base repetía dos valores ocho veces. Con las
+ * referencias la columna se reduce a una letra y los importes van una sola vez
+ * al pie, que es lo que permite acomodar los once conceptos en dos columnas.
+ */
+export function referenciasDeBase(contribuciones: FilaContribucion[]): ReferenciaBase[] {
+  const vistas: number[] = []
+
+  for (const fila of contribuciones) {
+    if (fila.base == null) continue
+    if (!vistas.includes(fila.base)) vistas.push(fila.base)
+  }
+
+  return vistas.map((base, i) => ({ letra: String.fromCharCode(97 + i), base }))
+}
+
+/** Letra que le corresponde a una fila, o null si es un importe fijo. */
+export function letraDeBase(
+  fila: FilaContribucion,
+  referencias: ReferenciaBase[]
+): string | null {
+  if (fila.base == null) return null
+  return referencias.find((r) => r.base === fila.base)?.letra ?? null
 }
