@@ -51,6 +51,21 @@ describe("componerCostoLaboral", () => {
     casi((neto?.monto ?? 0) + (aportes?.monto ?? 0), BRUTO + NO_REM)
   })
 
+  it("deja el INSSJP fuera de seguridad social, como el modelo oficial", () => {
+    const seg = composicion.tramos.find((t) => t.id === "seguridadSocial")
+    const pami = composicion.tramos.find((t) => t.id === "inssjp")
+
+    const sipaYSuaf = costoLaboral.contribuciones
+      .filter((c) => c.id === "jubilacionSipa" || c.id === "asignacionesFamiliares")
+      .reduce((acc, c) => acc + c.monto, 0)
+
+    casi(seg?.monto ?? 0, sipaYSuaf)
+    casi(
+      pami?.monto ?? 0,
+      costoLaboral.contribuciones.find((c) => c.id === "inssjp")!.monto
+    )
+  })
+
   it("junta las dos partes de ART en un solo tramo", () => {
     const art = composicion.tramos.find((t) => t.id === "art")
     const esperado = costoLaboral.contribuciones

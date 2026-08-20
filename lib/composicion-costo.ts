@@ -25,6 +25,7 @@ const COLORES = {
   neto: "#0e9fd8",
   aportes: "#7fc9e8",
   seguridadSocial: "#2f4b7c",
+  inssjp: "#3f8a7a",
   obraSocial: "#665191",
   art: "#d45087",
   convenio: "#f5a623",
@@ -55,10 +56,17 @@ export function componerCostoLaboral(
       color: COLORES.aportes,
     },
     {
+      // Sin el INSSJP: va como familia propia, igual que en el modelo oficial.
       id: "seguridadSocial",
       etiqueta: "Seguridad social",
-      monto: monto(["jubilacionSipa", "inssjp", "asignacionesFamiliares"]),
+      monto: monto(["jubilacionSipa", "asignacionesFamiliares"]),
       color: COLORES.seguridadSocial,
+    },
+    {
+      id: "inssjp",
+      etiqueta: "INSSJP",
+      monto: monto(["inssjp"]),
+      color: COLORES.inssjp,
     },
     {
       id: "obraSocial",

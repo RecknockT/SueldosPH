@@ -7,30 +7,72 @@ import type { FilaRecibo } from "@/lib/liquidacion"
 import type { LiquidacionGuardada } from "@/lib/tipos"
 
 /**
- * El recibo se imprime, así que va siempre con colores de papel: blanco y negro
+ * Recibo de haberes.
+ *
+ * Se imprime, así que va siempre con colores de papel: blanco y negro
  * explícitos, no los tokens del tema oscuro de la app.
+ *
+ * El orden es deliberado: primero la liquidación, que es lo que el trabajador
+ * firma, y después el costo del empleador que exige la Ley 27.802. El modelo
+ * publicado por el gobierno lo pone al revés; la ley pide que la información
+ * esté, no que encabece.
  */
 
-/** Las alícuotas van con dos decimales, como en el recibo de referencia. */
-const formatAlicuota = (valor: number) =>
-  `${valor.toFixed(2).replace(".", ",")}%`
+const BANDA = "#0b6d96"
 
-function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
+const formatAlicuota = (valor: number) => `${valor.toFixed(2).replace(".", ",")}%`
+
+function Rotulo({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-w-0">
-      <dt className="text-[9px] font-semibold tracking-wide text-neutral-500 uppercase">
-        {etiqueta}
-      </dt>
-      <dd className="truncate text-[11px] text-neutral-900">{valor}</dd>
+    <span className="text-[9px] font-semibold tracking-[0.09em] text-neutral-500 uppercase">
+      {children}
+    </span>
+  )
+}
+
+function Banda({ titulo, referencia }: { titulo: string; referencia: string }) {
+  return (
+    <div
+      className="flex flex-wrap items-baseline justify-between gap-2 px-2.5 py-1 text-white"
+      style={{ backgroundColor: BANDA }}
+    >
+      <h2 className="text-[10px] font-bold tracking-[0.1em] uppercase">{titulo}</h2>
+      <span className="text-[9px] tracking-[0.08em] uppercase opacity-80">
+        {referencia}
+      </span>
     </div>
   )
 }
 
-function Fila({ fila }: { fila: FilaRecibo }) {
+/** Cierre de sección: sólo el número que no está en la tabla de arriba. */
+function Cierre({ rotulo, monto }: { rotulo: string; monto: number }) {
   return (
-    <tr className={fila.esTotal ? "border-t border-neutral-400 font-bold" : ""}>
+    <div
+      className="flex flex-wrap items-baseline justify-between gap-2 px-2.5 py-1.5 text-white"
+      style={{ backgroundColor: BANDA }}
+    >
+      <span className="text-[9px] font-bold tracking-[0.09em] uppercase opacity-80">
+        {rotulo}
+      </span>
+      <span className="tabular text-base font-bold">{formatPesos(monto)}</span>
+    </div>
+  )
+}
+
+function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
+  return (
+    <div className="min-w-0">
+      <Rotulo>{etiqueta}</Rotulo>
+      <p className="truncate text-[11px] font-medium text-neutral-900">{valor}</p>
+    </div>
+  )
+}
+
+function FilaLiquidacion({ fila }: { fila: FilaRecibo }) {
+  return (
+    <tr className="border-b border-neutral-100 even:bg-neutral-50/70">
       <td className="px-2 py-1 text-[11px]">{fila.detalle}</td>
-      <td className="px-2 py-1 text-[10px] whitespace-nowrap text-neutral-600">
+      <td className="px-2 py-1 text-[10px] whitespace-nowrap text-neutral-500">
         {fila.unidad}
       </td>
       <td className="tabular px-2 py-1 text-right text-[11px]">
@@ -53,26 +95,45 @@ export function DocumentoRecibo({
   const { snapshot } = liquidacion
   const { empleado, empleador, resultado, costoLaboral } = snapshot
 
+  // Las filas de total ya cierran dentro de cada tabla; no se repiten afuera.
+  const haberes = resultado.haberes.filter((f) => !f.esTotal)
+  const deducciones = resultado.deducciones.filter((f) => !f.esTotal)
+
+  const composicion = costoLaboral
+    ? componerCostoLaboral(costoLaboral, resultado.neto, resultado.descuentos)
+    : null
+
   return (
     <article className="recibo-copia mx-auto w-full max-w-[190mm] bg-white p-4 text-neutral-900 sm:p-6">
-      <header className="flex items-start justify-between gap-4 border-b-2 border-neutral-800 pb-3">
+      <header className="flex flex-wrap items-start justify-between gap-4 border-b-2 border-neutral-900 pb-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-bold">
+          <p className="truncate text-[15px] font-bold">
             {empleador.nombre || "Consorcio de Propietarios"}
           </p>
-          <p className="text-[10px] text-neutral-600">
+          <p className="text-[10px] text-neutral-500">
             {empleador.cuit ? `CUIT ${empleador.cuit}` : "CUIT —"}
           </p>
         </div>
 
         <div className="shrink-0 text-right">
-          <p className="text-sm font-bold tracking-wide">RECIBO DE HABERES</p>
-          <p className="text-[10px] font-semibold text-neutral-500">{copia}</p>
-          <p className="text-[10px] text-neutral-600">Período {snapshot.periodo}</p>
+          <p className="text-[14px] font-bold tracking-[0.06em] uppercase">
+            Recibo de Haberes
+          </p>
+          <p className="text-[10px] text-neutral-500">
+            Ley 20.744 · Período {snapshot.periodo} · {copia}
+          </p>
+          {costoLaboral ? (
+            <span
+              className="mt-1 inline-block -rotate-1 rounded-sm border-[1.5px] px-1.5 py-0.5 text-[9px] font-bold tracking-[0.1em] uppercase"
+              style={{ borderColor: "#a8441a", color: "#a8441a" }}
+            >
+              Ley 27.802
+            </span>
+          ) : null}
         </div>
       </header>
 
-      <dl className="grid grid-cols-3 gap-x-4 gap-y-2 border-b border-neutral-300 py-3 sm:grid-cols-6">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 border-b border-neutral-300 py-3 sm:grid-cols-3 lg:grid-cols-6">
         <div className="col-span-2">
           <Dato etiqueta="Apellido y nombre" valor={empleado.nombre} />
         </div>
@@ -80,152 +141,171 @@ export function DocumentoRecibo({
         <div className="col-span-2">
           <Dato etiqueta="Cargo" valor={empleado.cargoNombre} />
         </div>
-        <Dato etiqueta="Categoría" valor={String(empleado.categoria)} />
+        <Dato etiqueta="Categoría" valor={`${empleado.categoria}ª`} />
         <Dato etiqueta="Fecha de ingreso" valor={formatFecha(empleado.fechaIngreso)} />
         <Dato
           etiqueta="Antigüedad"
           valor={`${empleado.antiguedadAnios} ${empleado.antiguedadAnios === 1 ? "año" : "años"}`}
         />
-      </dl>
+      </div>
 
-      {/*
-        En pantalla angosta la grilla de conceptos no baja de ~340px, así que
-        scrollea dentro de su caja en vez de desbordar la hoja. Al imprimir la
-        A4 sobra ancho y el contenedor se desactiva.
-      */}
+      {/* ---------- liquidación ---------- */}
+      <div className="mt-4">
+        <Banda titulo="Liquidación" referencia="Art. 140 LCT" />
+      </div>
+
       <div className="overflow-x-auto print:overflow-visible">
-      <table className="w-full min-w-[340px] border-collapse">
-        <thead>
-          <tr className="border-b border-neutral-400">
-            <th className="px-2 py-1 text-left text-[9px] font-semibold tracking-wide text-neutral-600 uppercase">
-              Concepto
-            </th>
-            <th className="px-2 py-1 text-left text-[9px] font-semibold tracking-wide text-neutral-600 uppercase">
-              Unidad
-            </th>
-            <th className="px-2 py-1 text-right text-[9px] font-semibold tracking-wide text-neutral-600 uppercase">
-              Haberes
-            </th>
-            <th className="px-2 py-1 text-right text-[9px] font-semibold tracking-wide text-neutral-600 uppercase">
-              Descuentos
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {resultado.haberes.map((fila) => (
-            <Fila key={`h-${fila.id}`} fila={fila} />
-          ))}
-          {resultado.deducciones.map((fila) => (
-            <Fila key={`d-${fila.id}`} fila={fila} />
-          ))}
-        </tbody>
-      </table>
-      </div>
-
-      <div className="mt-3 border-t-2 border-neutral-800 pt-3">
-        <div className="flex items-end justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <p className="text-[9px] font-semibold tracking-wide text-neutral-500 uppercase">
-              Son
-            </p>
-            <p className="text-[11px] leading-snug">{pesosEnLetras(resultado.neto)}</p>
-          </div>
-
-          <div className="shrink-0 text-right">
-            {resultado.noRemunerativo > 0 ? (
-              <p className="text-[10px] text-neutral-600">
-                No remunerativo {formatPesos(resultado.noRemunerativo)}
-              </p>
-            ) : null}
-            <p className="text-[9px] font-semibold tracking-wide text-neutral-500 uppercase">
-              Neto a cobrar
-            </p>
-            <p className="tabular text-lg font-bold">{formatPesos(resultado.neto)}</p>
-          </div>
-        </div>
-      </div>
-
-      {costoLaboral ? (
-        <section className="mt-6">
-          <div className="flex flex-wrap items-center justify-between gap-2 bg-[#0e9fd8] px-3 py-1.5 text-white">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-[10px] font-bold tracking-wide uppercase">
-                Contribuciones a cargo del empleador
-              </h2>
-              <span className="rounded bg-[#f5a623] px-1.5 py-0.5 text-[8px] font-bold tracking-wide text-neutral-900 uppercase">
-                Nuevo · Ley 27.802
-              </span>
-            </div>
-            <span className="text-[8px] font-semibold tracking-wide uppercase opacity-90">
-              Art. 52 bis LCT
-            </span>
-          </div>
-
-          <dl className="grid grid-cols-1 gap-x-6 border-x border-b border-neutral-300 px-3 py-2 sm:grid-cols-2">
-            {costoLaboral.contribuciones.map((fila) => (
-              <div
-                key={fila.id}
-                className="flex items-baseline justify-between gap-2 border-b border-neutral-100 py-1 last:border-0"
-              >
-                <dt className="text-[10px] font-semibold">{fila.detalle}</dt>
-                <dd className="flex shrink-0 items-baseline gap-2">
-                  <span className="tabular text-[9px] text-neutral-500">
-                    {fila.alicuota === null ? "—" : formatAlicuota(fila.alicuota)}
-                  </span>
-                  <span className="tabular text-[10px] font-medium">
-                    {formatPesos(fila.monto)}
-                  </span>
-                </dd>
-              </div>
+        <table className="w-full min-w-[340px] border-collapse">
+          <thead>
+            <tr className="border-b border-neutral-300">
+              <th className="w-[44%] px-2 py-1.5 text-left">
+                <Rotulo>Concepto</Rotulo>
+              </th>
+              <th className="px-2 py-1.5 text-left">
+                <Rotulo>Unidad</Rotulo>
+              </th>
+              <th className="px-2 py-1.5 text-right">
+                <Rotulo>Haberes</Rotulo>
+              </th>
+              <th className="px-2 py-1.5 text-right">
+                <Rotulo>Descuentos</Rotulo>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {haberes.map((fila) => (
+              <FilaLiquidacion key={`h-${fila.id}`} fila={fila} />
             ))}
-          </dl>
+            {deducciones.map((fila) => (
+              <FilaLiquidacion key={`d-${fila.id}`} fila={fila} />
+            ))}
+            <tr className="border-t-[1.5px] border-neutral-900 font-bold">
+              <td className="px-2 pt-1.5 text-[11px]">Totales</td>
+              <td />
+              <td className="tabular px-2 pt-1.5 text-right text-[11px]">
+                {formatPesos(resultado.bruto)}
+              </td>
+              <td className="tabular px-2 pt-1.5 text-right text-[11px]">
+                {formatPesos(resultado.descuentos)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2">
-            <div className="flex items-baseline justify-between gap-2 bg-neutral-100 px-3 py-2">
-              <span className="text-[9px] font-bold tracking-wide uppercase">
-                Total contribuciones patronales
-              </span>
-              <span className="tabular text-[11px] font-bold">
-                {formatPesos(costoLaboral.totalContribuciones)}
-              </span>
-            </div>
-            <div className="flex items-baseline justify-between gap-2 bg-[#0e9fd8] px-3 py-2 text-white">
-              <span className="text-[9px] font-bold tracking-wide uppercase">
-                Costo total del empleador
-              </span>
-              <span className="tabular text-[11px] font-bold">
-                {formatPesos(costoLaboral.costoTotal)}
-              </span>
-            </div>
-          </div>
+      <p className="mt-3 border-b border-neutral-300 pb-2.5 text-[11px] text-neutral-600">
+        <Rotulo>Son</Rotulo>
+        <span className="block">{pesosEnLetras(resultado.neto)}</span>
+      </p>
 
-          <div className="border-x border-b border-neutral-300 px-3 py-3">
-            <h3 className="mb-2 text-[9px] font-bold tracking-wide text-neutral-600 uppercase">
-              Composición del costo laboral
-            </h3>
-            <GraficoCosto
-              composicion={componerCostoLaboral(
-                costoLaboral,
-                resultado.neto,
-                resultado.descuentos
-              )}
+      {resultado.noRemunerativo > 0 ? (
+        <p className="mt-2 text-[10px] text-neutral-500">
+          Incluye {formatPesos(resultado.noRemunerativo)} de adicional no remunerativo,
+          que no integra la base de aportes.
+        </p>
+      ) : null}
+
+      <div className="mt-2">
+        <Cierre rotulo="Neto a cobrar" monto={resultado.neto} />
+      </div>
+
+      {/* ---------- contribuciones ---------- */}
+      {costoLaboral ? (
+        <>
+          <div className="mt-5">
+            <Banda
+              titulo="Contribuciones a cargo del empleador"
+              referencia="Art. 52 bis LCT · Ley 27.802"
             />
           </div>
-        </section>
+
+          <div className="overflow-x-auto print:overflow-visible">
+            <table className="w-full min-w-[340px] border-collapse">
+              <thead>
+                <tr className="border-b border-neutral-300">
+                  <th className="w-[40%] px-2 py-1.5 text-left">
+                    <Rotulo>Concepto</Rotulo>
+                  </th>
+                  <th className="px-2 py-1.5 text-right">
+                    <Rotulo>Alícuota</Rotulo>
+                  </th>
+                  <th className="px-2 py-1.5 text-right">
+                    <Rotulo>Base de cálculo</Rotulo>
+                  </th>
+                  <th className="px-2 py-1.5 text-right">
+                    <Rotulo>Monto</Rotulo>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {costoLaboral.contribuciones.map((fila) => (
+                  <tr
+                    key={fila.id}
+                    className="border-b border-neutral-100 even:bg-neutral-50/70"
+                  >
+                    <td className="px-2 py-1 text-[11px]">{fila.detalle}</td>
+                    <td className="tabular px-2 py-1 text-right text-[10px] text-neutral-500">
+                      {fila.alicuota === null ? "—" : formatAlicuota(fila.alicuota)}
+                    </td>
+                    <td className="tabular px-2 py-1 text-right text-[10px] text-neutral-500">
+                      {fila.base == null ? "—" : formatPesos(fila.base)}
+                    </td>
+                    <td className="tabular px-2 py-1 text-right text-[11px]">
+                      {formatPesos(fila.monto)}
+                    </td>
+                  </tr>
+                ))}
+                <tr className="border-t-[1.5px] border-neutral-900 font-bold">
+                  <td className="px-2 pt-1.5 text-[11px]">Subtotal contribuciones</td>
+                  <td />
+                  <td />
+                  <td className="tabular px-2 pt-1.5 text-right text-[11px]">
+                    {formatPesos(costoLaboral.totalContribuciones)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p className="mt-2 border-t border-neutral-200 pt-2 text-[10px] leading-relaxed text-neutral-500">
+            La base de las contribuciones nacionales —jubilación, INSSJP y asignaciones
+            familiares— es el bruto menos la detracción del art. 4 del Decreto 814/2001.
+            Las restantes se liquidan sobre el bruto completo.
+          </p>
+
+          <div className="mt-2">
+            <Cierre rotulo="Costo total del empleador" monto={costoLaboral.costoTotal} />
+          </div>
+
+          {/* ---------- composición ---------- */}
+          {composicion ? (
+            <>
+              <div className="mt-5">
+                <Banda
+                  titulo="Composición del costo laboral"
+                  referencia="Decreto 407/2026"
+                />
+              </div>
+
+              <div className="pt-3">
+                <GraficoCosto composicion={composicion} />
+              </div>
+
+              <p className="mt-2 border-t border-neutral-200 pt-2 text-[10px] text-neutral-500">
+                Seguridad social del empleador incluye SIPA y asignaciones familiares. Los
+                porcentajes se calculan sobre el costo total del empleador.
+              </p>
+            </>
+          ) : null}
+        </>
       ) : null}
 
       <footer className="mt-8 grid grid-cols-2 gap-8">
-        <div>
-          <div className="border-t border-neutral-500 pt-1">
-            <p className="text-[9px] text-neutral-600">Firma y sello del empleador</p>
-          </div>
+        <div className="border-t border-neutral-500 pt-1">
+          <p className="text-[9px] text-neutral-500">Firma y sello del empleador</p>
         </div>
-        <div>
-          <div className="border-t border-neutral-500 pt-1">
-            <p className="text-[9px] text-neutral-600">
-              Recibí conforme · firma y aclaración
-            </p>
-          </div>
+        <div className="border-t border-neutral-500 pt-1">
+          <p className="text-[9px] text-neutral-500">Recibí conforme · firma y aclaración</p>
         </div>
       </footer>
 

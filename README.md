@@ -189,9 +189,18 @@ Los cinco valores que dependen del consorcio o del trabajador —alícuota y mon
 fijo de ART, seguro de vida, detracción y contribución solidaria— se cargan en el
 legajo. El resto no se configura: son de ley o de convenio.
 
+Cada línea de contribuciones se imprime con **su base de cálculo**. Sin esa
+columna, que jubilación se liquide sobre un número y obra social sobre otro
+parece un error en vez de la detracción.
+
 El recibo cierra con el **gráfico de composición del costo laboral** que pide el
-Decreto 407/2026: una torta en SVG inline, sin librerías, que agrupa el sueldo
-neto, los aportes del trabajador y las contribuciones patronales por familia.
+Decreto 407/2026: una torta en SVG inline, sin librerías, cuya leyenda hace de
+resumen por familia con monto y porcentaje. El INSSJP va como familia propia,
+separado de seguridad social, igual que en el modelo publicado por el gobierno.
+
+El orden del documento es deliberado: primero la liquidación, que es lo que
+firma el trabajador, y después el costo del empleador. El modelo oficial lo pone
+al revés; la ley pide que la información esté, no que encabece.
 
 Los tests reproducen al centavo las contribuciones de dos recibos reales de
 propiedad horizontal, de los períodos 06-2026 y 07-2026.
