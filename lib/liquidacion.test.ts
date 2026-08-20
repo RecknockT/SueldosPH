@@ -186,6 +186,28 @@ describe("calcularLiquidacion", () => {
   })
 })
 
+describe("etiquetas del recibo", () => {
+  it("nombra el período sin arrastrar el nombre del JSON", () => {
+    const r = calcularLiquidacion({
+      planilla: { ...PLANILLA, nombre: "Planilla Salarial Mayo 2026" },
+      cargo: SIN_VIVIENDA,
+      categoria: 1,
+      entradas: { ...ENTRADAS_INICIALES, adicRem: 80000 },
+      adicionales: ADICIONALES_INICIALES,
+      aportes: APORTES_INICIALES,
+    })
+
+    const fila = r.haberes.find((f) => f.id === "adicRem")
+    assert.equal(fila?.detalle, "SUMA REMUNERATIVA MAYO 2026")
+  })
+
+  it("nombra el aporte del 0,75% como ART 27 bis, no como seguro vitalicio", () => {
+    const fila = liquidar().deducciones.find((f) => f.id === "seguroVitalicio")
+
+    assert.equal(fila?.detalle, "ART27 BIS CCT 589/10 0,75%")
+  })
+})
+
 describe("detalle del recibo", () => {
   const r = liquidar({
     cargo: CON_VIVIENDA,
