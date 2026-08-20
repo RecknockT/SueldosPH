@@ -8,8 +8,11 @@ const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 export function supabaseEnv() {
   if (!url || !anonKey) {
     throw new Error(
-      "Faltan NEXT_PUBLIC_SUPABASE_URL y/o NEXT_PUBLIC_SUPABASE_ANON_KEY. " +
-        "Copiá .env.example a .env.local en local y cargá ambas variables en Vercel."
+      "Faltan NEXT_PUBLIC_SUPABASE_URL y/o NEXT_PUBLIC_SUPABASE_ANON_KEY.\n" +
+        "En local: copiá .env.example a .env.local.\n" +
+        "En Vercel: Settings > Environment Variables, con Production, Preview y " +
+        "Development tildados. Un deploy de preview no ve las variables scopeadas " +
+        "sólo a Production, y el build falla al prerenderizar /sueldos."
     )
   }
 
