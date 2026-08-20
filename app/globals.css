@@ -1,0 +1,145 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.75rem;
+
+  --background: #f5f6fa;
+  --foreground: #10141f;
+  --card: #ffffff;
+  --card-foreground: #10141f;
+  --popover: #ffffff;
+  --popover-foreground: #10141f;
+  --primary: #4361ee;
+  --primary-foreground: #ffffff;
+  --secondary: #eaecf3;
+  --secondary-foreground: #1d2333;
+  --muted: #eaecf3;
+  --muted-foreground: #5c6479;
+  --accent: #e6eaff;
+  --accent-foreground: #23306b;
+  --destructive: #dc2626;
+  --border: #dfe2ec;
+  --input: #d5d9e6;
+  --ring: #5b7cff;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #10141f;
+  --sidebar-primary: #4361ee;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e6eaff;
+  --sidebar-accent-foreground: #23306b;
+  --sidebar-border: #dfe2ec;
+  --sidebar-ring: #5b7cff;
+
+  --brand-from: #5b7cff;
+  --brand-to: #7c5cff;
+}
+
+.dark {
+  --background: #0b0f19;
+  --foreground: #eef0f6;
+  --card: #171c2b;
+  --card-foreground: #f5f6fb;
+  --popover: #131826;
+  --popover-foreground: #f5f6fb;
+  --primary: #5b7cff;
+  --primary-foreground: #ffffff;
+  --secondary: #1e2436;
+  --secondary-foreground: #e6e9f2;
+  --muted: #1a2032;
+  --muted-foreground: #8b93a7;
+  --accent: #232b40;
+  --accent-foreground: #eef0f6;
+  --destructive: #f87171;
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: #5b7cff;
+
+  --sidebar: #10141f;
+  --sidebar-foreground: #eef0f6;
+  --sidebar-primary: #5b7cff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: oklch(1 0 0 / 6%);
+  --sidebar-accent-foreground: #eef0f6;
+  --sidebar-border: oklch(1 0 0 / 6%);
+  --sidebar-ring: #5b7cff;
+
+  --brand-from: #5b7cff;
+  --brand-to: #7c5cff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-brand-from: var(--brand-from);
+  --color-brand-to: var(--brand-to);
+
+  --font-sans: var(--font-inter), "Segoe UI", system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  /* El panel de liquidación trabaja con montos: números tabulares en todos lados. */
+  input[type="number"] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+@utility bg-brand {
+  background-image: linear-gradient(120deg, var(--brand-from), var(--brand-to));
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
