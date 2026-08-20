@@ -1,3 +1,5 @@
+import { GraficoCosto } from "@/components/recibo/grafico-costo"
+import { componerCostoLaboral } from "@/lib/composicion-costo"
 import { formatPesos } from "@/lib/format"
 import { pesosEnLetras } from "@/lib/letras"
 import { formatFecha, formatFechaHora } from "@/lib/periodos"
@@ -195,6 +197,19 @@ export function DocumentoRecibo({
                 {formatPesos(costoLaboral.costoTotal)}
               </span>
             </div>
+          </div>
+
+          <div className="border-x border-b border-neutral-300 px-3 py-3">
+            <h3 className="mb-2 text-[9px] font-bold tracking-wide text-neutral-600 uppercase">
+              Composición del costo laboral
+            </h3>
+            <GraficoCosto
+              composicion={componerCostoLaboral(
+                costoLaboral,
+                resultado.neto,
+                resultado.descuentos
+              )}
+            />
           </div>
         </section>
       ) : null}

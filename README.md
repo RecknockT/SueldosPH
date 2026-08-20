@@ -175,13 +175,26 @@ conceptos del CCT 589/10:
 | SERACARH | 0,50% |
 | ART (monto fijo) | importe fijo |
 | Seguro de vida obligatorio | importe fijo |
+| Contribución solidaria | importe fijo |
 
-Los tres valores que dependen de la póliza de cada consorcio —alícuota de ART,
-monto fijo de ART y seguro de vida— se cargan en el legajo. El resto no se
-configura: son de ley o de convenio.
+**SIPA, INSSJP y asignaciones familiares no se calculan sobre el bruto**, sino
+sobre el bruto menos la *detracción* del art. 4 del Decreto 814/2001. Las demás
+sí van sobre el bruto completo. La detracción se reduce en contratos a tiempo
+parcial, así que se carga por legajo y puede ir en cero.
 
-Los tests reproducen al centavo las contribuciones de un recibo real de
-propiedad horizontal del período 06-2026.
+La contribución solidaria corresponde a los trabajadores que no aportan cuota
+sindical.
+
+Los cinco valores que dependen del consorcio o del trabajador —alícuota y monto
+fijo de ART, seguro de vida, detracción y contribución solidaria— se cargan en el
+legajo. El resto no se configura: son de ley o de convenio.
+
+El recibo cierra con el **gráfico de composición del costo laboral** que pide el
+Decreto 407/2026: una torta en SVG inline, sin librerías, que agrupa el sueldo
+neto, los aportes del trabajador y las contribuciones patronales por familia.
+
+Los tests reproducen al centavo las contribuciones de dos recibos reales de
+propiedad horizontal, de los períodos 06-2026 y 07-2026.
 
 ## Cálculo
 

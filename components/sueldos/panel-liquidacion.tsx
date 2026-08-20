@@ -110,8 +110,8 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
   )
 
   const costoLaboral = useMemo(
-    () => calcularCostoLaboral(liquidacion.bruto, configCosto),
-    [liquidacion.bruto, configCosto]
+    () => calcularCostoLaboral(liquidacion.bruto, configCosto, liquidacion.noRemunerativo),
+    [liquidacion.bruto, liquidacion.noRemunerativo, configCosto]
   )
 
   const setEntrada = (key: ClaveEntrada) => (valor: number | "") =>
@@ -160,6 +160,10 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
       artMontoFijo: legajo.art_monto_fijo ?? CONFIG_COSTO_LABORAL_POR_DEFECTO.artMontoFijo,
       seguroVidaObligatorio:
         legajo.seguro_vida ?? CONFIG_COSTO_LABORAL_POR_DEFECTO.seguroVidaObligatorio,
+      detraccion: legajo.detraccion ?? CONFIG_COSTO_LABORAL_POR_DEFECTO.detraccion,
+      contribucionSolidaria:
+        legajo.contribucion_solidaria ??
+        CONFIG_COSTO_LABORAL_POR_DEFECTO.contribucionSolidaria,
     })
   }
 

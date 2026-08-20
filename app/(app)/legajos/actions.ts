@@ -69,6 +69,8 @@ export async function guardarLegajo(formData: FormData): Promise<EstadoLegajo> {
     art_alicuota: numero(formData, "art_alicuota"),
     art_monto_fijo: numero(formData, "art_monto_fijo"),
     seguro_vida: numero(formData, "seguro_vida"),
+    detraccion: numero(formData, "detraccion"),
+    contribucion_solidaria: numero(formData, "contribucion_solidaria"),
     activo: formData.get("activo") === "on",
     notas: texto(formData, "notas"),
   }

@@ -73,10 +73,11 @@ export async function guardarLiquidacion(
     aportes,
   })
 
-  const costoLaboral = calcularCostoLaboral(resultado.bruto, {
-    ...CONFIG_COSTO_LABORAL_POR_DEFECTO,
-    ...datos.costoLaboral,
-  })
+  const costoLaboral = calcularCostoLaboral(
+    resultado.bruto,
+    { ...CONFIG_COSTO_LABORAL_POR_DEFECTO, ...datos.costoLaboral },
+    resultado.noRemunerativo
+  )
 
   const snapshot: SnapshotLiquidacion = {
     version: 1,

@@ -32,7 +32,15 @@ const ESPERADO: Partial<Record<ClaveContribucion, number>> = {
 const casi = (a: number, b: number) =>
   assert.ok(Math.abs(a - b) < 0.02, `esperaba ${b}, obtuve ${a.toFixed(2)}`)
 
-const resultado = calcularCostoLaboral(BASE)
+/**
+ * A ese recibo no se le aplicó detracción —es un suplente con horario por día,
+ * y la del art. 4 se reduce en los contratos a tiempo parcial— ni contribución
+ * solidaria, porque el empleado sí aporta cuota sindical.
+ */
+const resultado = calcularCostoLaboral(BASE, {
+  ...CONFIG_COSTO_LABORAL_POR_DEFECTO,
+  detraccion: 0,
+})
 const monto = (clave: ClaveContribucion) =>
   resultado.contribuciones.find((c) => c.id === clave)?.monto ?? Number.NaN
 
@@ -43,12 +51,16 @@ describe("calcularCostoLaboral", () => {
     }
   })
 
+  it("no informa contribución solidaria cuando el empleado aporta cuota sindical", () => {
+    casi(monto("contribucionSolidaria"), 0)
+  })
+
   it("liquida la obra social patronal al 6% del bruto", () => {
     casi(monto("obraSocial"), BASE * 0.06)
   })
 
-  it("informa los diez conceptos del recibo", () => {
-    assert.equal(resultado.contribuciones.length, 10)
+  it("informa los once conceptos posibles", () => {
+    assert.equal(resultado.contribuciones.length, 11)
   })
 
   it("el total es la suma de las filas", () => {
@@ -62,7 +74,78 @@ describe("calcularCostoLaboral", () => {
 
   it("marca como importe fijo lo que no es porcentaje", () => {
     const fijos = resultado.contribuciones.filter((c) => c.alicuota === null).map((c) => c.id)
-    assert.deepEqual(fijos.sort(), ["artMontoFijo", "seguroVidaObligatorio"])
+    assert.deepEqual(fijos.sort(), [
+      "artMontoFijo",
+      "contribucionSolidaria",
+      "seguroVidaObligatorio",
+    ])
+  })
+})
+
+/**
+ * Segundo caso de referencia: recibo real del período 07-2026, Encargado
+ * Permanente con vivienda 2ª categoría. Trae la detracción del art. 4 del
+ * Decreto 814/2001 y la contribución solidaria, y el empleado no aporta cuota
+ * sindical.
+ */
+describe("recibo 07-2026 con detracción y contribución solidaria", () => {
+  const BRUTO = 1928512.77
+
+  const r = calcularCostoLaboral(BRUTO, {
+    artAlicuota: 4.71,
+    artMontoFijo: 1839,
+    seguroVidaObligatorio: 424.62,
+    detraccion: 7003.68,
+    contribucionSolidaria: 48424,
+  })
+
+  const m = (clave: ClaveContribucion) =>
+    r.contribuciones.find((c) => c.id === clave)?.monto ?? Number.NaN
+
+  it("aplica la detracción sólo a las contribuciones nacionales", () => {
+    casi(m("jubilacionSipa"), 206946.53)
+    casi(m("inssjp"), 30551.99)
+    casi(m("asignacionesFamiliares"), 108373.11)
+  })
+
+  it("liquida sobre el bruto completo las que no llevan detracción", () => {
+    casi(m("obraSocial"), 115710.77)
+    casi(m("artAlicuota"), 90832.95)
+    casi(m("cajaProteccionFamilia"), 28927.69)
+    casi(m("fateryhFmvdd"), 91604.36)
+    casi(m("seracarh"), 9642.56)
+  })
+
+  it("informa los importes fijos del período", () => {
+    casi(m("artMontoFijo"), 1839)
+    casi(m("seguroVidaObligatorio"), 424.62)
+    casi(m("contribucionSolidaria"), 48424)
+  })
+
+  it("cierra el total y el costo del empleador", () => {
+    casi(r.totalContribuciones, 733277.58)
+    casi(r.costoTotal, 2661790.35)
+  })
+})
+
+describe("detracción", () => {
+  it("en cero liquida todo sobre el bruto", () => {
+    const r = calcularCostoLaboral(BASE, {
+      ...CONFIG_COSTO_LABORAL_POR_DEFECTO,
+      detraccion: 0,
+    })
+
+    casi(r.contribuciones.find((c) => c.id === "jubilacionSipa")!.monto, BASE * 0.1077)
+  })
+
+  it("nunca deja la base nacional en negativo", () => {
+    const r = calcularCostoLaboral(1000, {
+      ...CONFIG_COSTO_LABORAL_POR_DEFECTO,
+      detraccion: 999999,
+    })
+
+    casi(r.contribuciones.find((c) => c.id === "jubilacionSipa")!.monto, 0)
+    assert.ok(r.totalContribuciones >= 0)
   })
 })
 
@@ -81,6 +164,8 @@ describe("configuración por consorcio", () => {
       artAlicuota: 0,
       artMontoFijo: 3000,
       seguroVidaObligatorio: 500,
+      detraccion: 0,
+      contribucionSolidaria: 0,
     })
 
     casi(r.contribuciones.find((c) => c.id === "artMontoFijo")!.monto, 3000)
@@ -93,6 +178,8 @@ describe("configuración por consorcio", () => {
       artAlicuota: Number.NaN,
       artMontoFijo: Number.NaN,
       seguroVidaObligatorio: Number.NaN,
+      detraccion: Number.NaN,
+      contribucionSolidaria: Number.NaN,
     })
 
     assert.ok(Number.isFinite(r.totalContribuciones))

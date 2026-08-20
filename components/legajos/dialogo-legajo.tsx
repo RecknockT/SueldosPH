@@ -263,7 +263,38 @@ export function DialogoLegajo({
                   className="tabular"
                 />
               </Campo>
+
+              <Campo id="detraccion" label="Detracción Dto. 814/01">
+                <Input
+                  id="detraccion"
+                  name="detraccion"
+                  type="number"
+                  min={0}
+                  step="any"
+                  defaultValue={legajo?.detraccion ?? 7003.68}
+                  className="tabular"
+                />
+              </Campo>
+
+              <Campo id="contribucion_solidaria" label="Contribución solidaria">
+                <Input
+                  id="contribucion_solidaria"
+                  name="contribucion_solidaria"
+                  type="number"
+                  min={0}
+                  step="any"
+                  defaultValue={legajo?.contribucion_solidaria ?? 0}
+                  className="tabular"
+                />
+              </Campo>
             </div>
+
+            <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
+              La detracción se resta de la base de SIPA, INSSJP y asignaciones
+              familiares; se reduce en contratos a tiempo parcial, así que puede ir en
+              cero. La contribución solidaria corresponde a quienes no aportan cuota
+              sindical.
+            </p>
           </div>
 
           <Separator />

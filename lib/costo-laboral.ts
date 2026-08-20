@@ -22,6 +22,7 @@ export type ClaveContribucion =
   | "artAlicuota"
   | "cajaProteccionFamilia"
   | "fateryhFmvdd"
+  | "contribucionSolidaria"
   | "seracarh"
 
 /**
@@ -36,12 +37,26 @@ export type ConfigCostoLaboral = {
   artMontoFijo: number
   /** Seguro colectivo de vida obligatorio, importe fijo por trabajador. */
   seguroVidaObligatorio: number
+  /**
+   * Detracción del art. 4 del Decreto 814/2001: se resta de la base de las
+   * contribuciones nacionales (SIPA, INSSJP y asignaciones familiares), no de
+   * las de obra social, ART ni convenio. Se reduce en contratos a tiempo
+   * parcial, así que se deja configurable; en 0 se liquida sobre el bruto.
+   */
+  detraccion: number
+  /**
+   * Contribución solidaria del convenio, importe fijo. Corresponde a los
+   * trabajadores que no aportan cuota sindical.
+   */
+  contribucionSolidaria: number
 }
 
 export const CONFIG_COSTO_LABORAL_POR_DEFECTO: ConfigCostoLaboral = {
   artAlicuota: 4.71,
   artMontoFijo: 1765,
   seguroVidaObligatorio: 424.62,
+  detraccion: 7003.68,
+  contribucionSolidaria: 0,
 }
 
 /** Alícuotas que no dependen del consorcio. */
@@ -66,7 +81,11 @@ export type FilaContribucion = {
 export type CostoLaboral = {
   contribuciones: FilaContribucion[]
   totalContribuciones: number
-  /** Bruto remunerativo más las contribuciones: lo que sale del consorcio. */
+  /** Base remunerativa sobre la que se calcularon las contribuciones. */
+  bruto: number
+  /** Sumas no remunerativas: no pagan contribuciones pero las paga el consorcio. */
+  noRemunerativo: number
+  /** Todo lo que sale del consorcio por este trabajador. */
   costoTotal: number
 }
 
@@ -74,11 +93,16 @@ const seguro = (valor: number) => (Number.isFinite(valor) ? valor : 0)
 
 export function calcularCostoLaboral(
   bruto: number,
-  config: ConfigCostoLaboral = CONFIG_COSTO_LABORAL_POR_DEFECTO
+  config: ConfigCostoLaboral = CONFIG_COSTO_LABORAL_POR_DEFECTO,
+  noRemunerativo = 0
 ): CostoLaboral {
   const base = Math.max(0, seguro(bruto))
 
+  // Las contribuciones nacionales van sobre la base neta de detracción.
+  const baseNacional = Math.max(0, base - Math.max(0, seguro(config.detraccion)))
+
   const porcentaje = (alicuota: number) => (base * alicuota) / 100
+  const porcentajeNacional = (alicuota: number) => (baseNacional * alicuota) / 100
 
   // El orden replica el del recibo: se lee por columnas, de a dos.
   const contribuciones: FilaContribucion[] = [
@@ -86,7 +110,7 @@ export function calcularCostoLaboral(
       id: "jubilacionSipa",
       detalle: "JUBILACIÓN (SIPA)",
       alicuota: ALICUOTAS.jubilacionSipa,
-      monto: porcentaje(ALICUOTAS.jubilacionSipa),
+      monto: porcentajeNacional(ALICUOTAS.jubilacionSipa),
     },
     {
       id: "seguroVidaObligatorio",
@@ -98,7 +122,7 @@ export function calcularCostoLaboral(
       id: "inssjp",
       detalle: "I.N.S.S.J.P (LEY 19.032)",
       alicuota: ALICUOTAS.inssjp,
-      monto: porcentaje(ALICUOTAS.inssjp),
+      monto: porcentajeNacional(ALICUOTAS.inssjp),
     },
     {
       id: "artAlicuota",
@@ -110,7 +134,7 @@ export function calcularCostoLaboral(
       id: "asignacionesFamiliares",
       detalle: "ASIGNACIONES FAMILIARES (SUAF)",
       alicuota: ALICUOTAS.asignacionesFamiliares,
-      monto: porcentaje(ALICUOTAS.asignacionesFamiliares),
+      monto: porcentajeNacional(ALICUOTAS.asignacionesFamiliares),
     },
     {
       id: "cajaProteccionFamilia",
@@ -120,7 +144,7 @@ export function calcularCostoLaboral(
     },
     {
       id: "obraSocial",
-      detalle: "OBRA SOCIAL (ADICIONAL)",
+      detalle: "OBRA SOCIAL",
       alicuota: ALICUOTAS.obraSocial,
       monto: porcentaje(ALICUOTAS.obraSocial),
     },
@@ -129,6 +153,12 @@ export function calcularCostoLaboral(
       detalle: "FATERYH (F.M.V.D.D)",
       alicuota: ALICUOTAS.fateryhFmvdd,
       monto: porcentaje(ALICUOTAS.fateryhFmvdd),
+    },
+    {
+      id: "contribucionSolidaria",
+      detalle: "CONTRIBUCIÓN SOLIDARIA",
+      alicuota: null,
+      monto: Math.max(0, seguro(config.contribucionSolidaria)),
     },
     {
       id: "artMontoFijo",
@@ -146,9 +176,13 @@ export function calcularCostoLaboral(
 
   const totalContribuciones = contribuciones.reduce((acc, fila) => acc + fila.monto, 0)
 
+  const noRem = Math.max(0, seguro(noRemunerativo))
+
   return {
     contribuciones,
     totalContribuciones,
-    costoTotal: base + totalContribuciones,
+    bruto: base,
+    noRemunerativo: noRem,
+    costoTotal: base + noRem + totalContribuciones,
   }
 }
