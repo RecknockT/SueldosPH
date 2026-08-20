@@ -6,6 +6,12 @@ import { DocumentoRecibo } from "@/components/recibo/documento-recibo"
 import { requerirUsuario } from "@/lib/datos/auth"
 import { obtenerLiquidacion } from "@/lib/datos/liquidaciones"
 
+/**
+ * Depende de la sesión del usuario: nunca se prerenderiza ni se cachea.
+ * Sin esto Next intenta generarla en build y falla antes de llegar a cookies().
+ */
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = { title: "Recibo" }
 
 export default async function ReciboPage({
