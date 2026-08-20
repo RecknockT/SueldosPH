@@ -140,7 +140,13 @@ export const CAMPOS_APORTE: {
     detalle: "CAJA PROTECCIÓN FAMILIA",
   },
   { key: "fmvdd", label: "FMVDD", detalle: "FATERYH (FMVDD)" },
-  { key: "seguroVitalicio", label: "Seguro vitalicio", detalle: "SEGURO VITALICIO" },
+  {
+    // La clave queda como está: renombrarla invalidaría los aportes ya
+    // guardados en los legajos y las planillas generadas.
+    key: "seguroVitalicio",
+    label: "ART 27 bis · CCT 589/10",
+    detalle: "ART27 BIS CCT 589/10",
+  },
 ]
 
 /** Orden en el que los aportes se imprimen en el recibo. */
@@ -189,6 +195,14 @@ export type ParametrosLiquidacion = {
 }
 
 const num = (valor: number | "") => (valor === "" ? 0 : Number(valor) || 0)
+
+/**
+ * "Planilla Salarial Mayo 2026" -> "MAYO 2026", que es como se nombra el
+ * período en el recibo. El nombre completo del JSON no va impreso.
+ */
+export function periodoDe(planilla: Planilla) {
+  return planilla.nombre.replace(/^planilla\s+salarial\s*/i, "").toUpperCase()
+}
 
 export function formatPorcentaje(valor: number) {
   return `${valor.toString().replace(".", ",")}%`
@@ -330,7 +344,7 @@ export function calcularLiquidacion({
   agregarHaber("antiguedad", "ANTIGÜEDAD", `${anios} AÑOS`, antiguedad)
   agregarHaber("retiroResiduos", "RETIRO RESIDUOS", `${uf} UF`, retiroResiduos)
   agregarHaber("clasifResiduos", "CLASIF. RESIDUOS", "", clasificacionResiduos)
-  agregarHaber("adicRem", `SUMA REMUNERATIVA ${planilla.nombre}`, "", adicRem)
+  agregarHaber("adicRem", `SUMA REMUNERATIVA ${periodoDe(planilla)}`, "", adicRem)
   agregarHaber("jardin", "JARDÍN", "", jardin)
   agregarHaber("limpiezaCochera", "LIMPIEZA COCHERA", "", limpiezaCochera)
   agregarHaber("movimientoAutos", "MOVIMIENTO AUTOS", "", movimientoAutos)
