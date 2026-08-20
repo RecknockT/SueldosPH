@@ -1,0 +1,82 @@
+name: Sincronizar planillas salariales
+
+# Busca planillas nuevas en suterh.org.ar y, si encuentra cambios, abre un PR.
+# Nunca commitea a main directamente: los sueldos se revisan antes de liquidar.
+
+on:
+  schedule:
+    # Lunes a las 12:00 UTC (09:00 en Argentina).
+    - cron: "0 12 * * 1"
+  workflow_dispatch:
+    inputs:
+      anios:
+        description: "Años a sincronizar, separados por espacio (vacío = año corriente)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sincronizar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Bajar planillas
+        run: npm run sync:planillas -- ${{ inputs.anios }}
+
+      - name: Verificar que la app sigue compilando
+        run: |
+          npm test
+          npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: ¿Hubo cambios?
+        id: cambios
+        run: |
+          if [ -z "$(git status --porcelain data/planillas)" ]; then
+            echo "hay=false" >> "$GITHUB_OUTPUT"
+            echo "Sin novedades en las planillas."
+          else
+            echo "hay=true" >> "$GITHUB_OUTPUT"
+            git status --short data/planillas
+          fi
+
+      - name: Abrir PR
+        if: steps.cambios.outputs.hay == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RAMA="sync/planillas"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$RAMA"
+          git add data/planillas
+          git commit -m "Sincroniza planillas salariales desde SUTERH"
+          git push --force-with-lease origin "$RAMA"
+
+          if [ -z "$(gh pr list --head "$RAMA" --state open --json number --jq '.[].number')" ]; then
+            gh pr create \
+              --base main \
+              --head "$RAMA" \
+              --title "Sincroniza planillas salariales desde SUTERH" \
+              --body "Actualización automática desde https://suterh.org.ar/planillas-salariales/
+
+          Revisá el diff antes de mergear: estos montos entran directo en la liquidación.
+
+          Generado por \`.github/workflows/sync-planillas.yml\`."
+          else
+            echo "Ya hay un PR abierto para $RAMA; se actualizó con el push."
+          fi
