@@ -7,14 +7,14 @@ export type Categoria = (typeof CATEGORIAS)[number]
 const HORAS_MENSUALES = 200
 
 /**
- * Las dos cargas de horas extra se liquidan al 100% (x2), feriados y sábados por igual.
+ * Recargo de las horas extra sobre el valor hora.
  *
- * La versión anterior sumaba x2 al total pero imprimía x1,5 en la fila de "sábados",
- * así que el detalle nunca cerraba con su propio total. El x2 quedó confirmado como
- * el multiplicador correcto para ambos casos.
+ * Se carga por recargo, no por día: al 50% la hora se paga 1,5 veces y al 100%
+ * el doble. Las horas de sábado o feriado se cargan en el campo que corresponda
+ * según el recargo que les aplique, sin necesidad de un campo por día.
  */
+const MULTIPLICADOR_HORA_50 = 1.5
 const MULTIPLICADOR_HORA_100 = 2
-const MULTIPLICADOR_HORA_50 = 2
 
 /** Cargos que cobran el plus de antigüedad reducido (media jornada y equivalentes). */
 export const CARGOS_PLUS_ANTIGUEDAD_REDUCIDO = [
@@ -46,8 +46,8 @@ export type ClaveAporte =
 export type ClaveEntrada =
   | "uf"
   | "antiguedad"
-  | "horas100"
   | "horas50"
+  | "horas100"
   | "adicRem"
   | "adicNoRem"
 
@@ -60,8 +60,8 @@ export type EstadoAportes = Record<ClaveAporte, boolean>
 export const ENTRADAS_INICIALES: Entradas = {
   uf: 0,
   antiguedad: 0,
-  horas100: 0,
   horas50: 0,
+  horas100: 0,
   adicRem: 0,
   adicNoRem: 0,
 }
@@ -93,8 +93,8 @@ export const CAMPOS_ENTRADA: {
 }[] = [
   { key: "uf", label: "UF", ayuda: "Unidades funcionales" },
   { key: "antiguedad", label: "Antigüedad", ayuda: "Años cumplidos" },
-  { key: "horas100", label: "Horas feriados", ayuda: "Cantidad de horas al 100%" },
-  { key: "horas50", label: "Horas sábados", ayuda: "Cantidad de horas al 100%" },
+  { key: "horas50", label: "Horas al 50%", ayuda: "Se pagan a 1,5 veces el valor hora" },
+  { key: "horas100", label: "Horas al 100%", ayuda: "Se pagan al doble del valor hora" },
   { key: "adicRem", label: "Adic. remunerativo", ayuda: "Suma fija en pesos" },
   {
     key: "adicNoRem",
@@ -335,9 +335,9 @@ export function calcularLiquidacion({
   agregarHaber("limpiezaCochera", "LIMPIEZA COCHERA", "", limpiezaCochera)
   agregarHaber("movimientoAutos", "MOVIMIENTO AUTOS", "", movimientoAutos)
   agregarHaber("viaticos", "VIÁTICOS", "", viaticos)
-  agregarHaber("horas100", "HORAS EXTRAS AL 100% FERIADOS", `${horas100} HS`, montoHoras100)
+  agregarHaber("horas50", "HORAS EXTRAS AL 50%", `${horas50} HS`, montoHoras50)
+  agregarHaber("horas100", "HORAS EXTRAS AL 100%", `${horas100} HS`, montoHoras100)
   agregarHaber("vivienda", "VIVIENDA", "", vivienda)
-  agregarHaber("horas50", "HORAS EXTRAS AL 100% SÁBADOS", `${horas50} HS`, montoHoras50)
   agregarHaber("titulo", "TÍTULO ENCARGADO INTEGRAL", "", tituloEncargado)
 
   haberes.push({
