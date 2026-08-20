@@ -12,6 +12,11 @@ cp .env.example .env.local   # completá las claves de Supabase
 npm run dev
 ```
 
+Una vez, en Supabase → SQL Editor, hay que ejecutar
+`supabase/migrations/0001_legajos_y_liquidaciones.sql`. Crea las tablas de
+legajos e historial con RLS por usuario. Sin eso la app liquida igual, pero no
+guarda nada y avisa en pantalla.
+
 | Comando | Qué hace |
 | --- | --- |
 | `npm run dev` | Servidor de desarrollo en http://localhost:3000 |
@@ -47,16 +52,26 @@ arriba. Después, cada push a la rama de producción despliega solo.
 app/
   page.tsx            Landing pública
   login/              Login (Server Action + formulario cliente)
-  sueldos/            Panel de liquidación (requiere sesión)
+  (app)/sueldos/      Panel de liquidación
+  (app)/legajos/      Fichas de empleados
+  (app)/historial/    Recibos emitidos
+  recibo/[id]/        Recibo imprimible (sin navegación, va a papel)
 components/
   sueldos/            Componentes del panel
+  legajos/            Alta y listado de legajos
+  historial/          Tabla de liquidaciones
+  recibo/             Documento imprimible
   ui/                 shadcn/ui (se regeneran con la CLI, no se editan a mano)
 lib/
   liquidacion.ts      Cálculo de haberes, descuentos y neto (funciones puras)
-  liquidacion.test.ts Tests del cálculo
   planillas.ts        Carga y tipado de las planillas
+  periodos.ts         Antigüedad y fechas por período
+  letras.ts           Importes en letras para el recibo
   format.ts           Formato de moneda es-AR
+  tipos.ts            Legajo, snapshot y liquidación guardada
+  datos/              Lecturas de Supabase (server-only)
   supabase/           Clientes de Supabase (browser / server / proxy)
+supabase/migrations/  Esquema de la base
 data/planillas/       Escalas salariales por período (JSON generado)
 scripts/
   parse-planilla.ts   Parser de las tablas de SUTERH
@@ -107,6 +122,35 @@ Dos cosas a tener en cuenta:
   función, agrega un concepto o deja un importe ilegible, falla con un mensaje
   concreto en vez de escribir una planilla incompleta. Cuando eso pase, hay que
   actualizar las tablas de mapeo en `scripts/parse-planilla.ts`.
+
+## Legajos, recibos e historial
+
+**Legajos.** La ficha de cada persona que liquidás: cargo, categoría, fecha de
+ingreso, consorcio y los valores habituales (UF, adicionales, aportes). Al
+liquidar se elige de una lista y el formulario se precarga solo. La antigüedad
+sale de la fecha de ingreso, no se carga a mano, y se recalcula según el período.
+
+**Cálculo rápido.** Un botón arriba del panel apaga todo eso: no pide empleado,
+no guarda y no toca el historial. Es la calculadora suelta, para sacar un número
+de una persona puntual.
+
+**Recibo.** "Guardar y emitir recibo" persiste la liquidación y lleva a
+`/recibo/[id]`: una hoja A4 con original y duplicado, importe en letras y
+espacios de firma. El PDF sale del diálogo de impresión eligiendo "Guardar como
+PDF" — así el mismo documento sirve para imprimir y firmar por duplicado.
+
+**Historial.** Todo recibo emitido queda listado, buscable por empleado, período
+o consorcio.
+
+Dos decisiones que conviene conocer:
+
+- **El historial guarda un snapshot completo**, no los datos de entrada. Si
+  mañana se corrige una planilla o cambia una regla de cálculo, un recibo ya
+  emitido no se mueve: es el registro de lo que efectivamente se pagó.
+- **El guardado recalcula en el servidor.** La acción no acepta los totales que
+  manda el navegador: vuelve a llamar a `calcularLiquidacion` con los mismos
+  datos de entrada, así lo que queda emitido siempre es lo que produce el motor
+  de cálculo.
 
 ## Cálculo
 

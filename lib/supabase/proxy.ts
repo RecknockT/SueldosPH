@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr"
 import { supabaseEnv } from "./config"
 
 /** Rutas que exigen sesión iniciada. */
-const RUTAS_PROTEGIDAS = ["/sueldos"]
+const RUTAS_PROTEGIDAS = ["/sueldos", "/legajos", "/historial", "/recibo"]
 
 /**
  * Refresca el token de Supabase en cada request y resuelve los redirects de auth.
