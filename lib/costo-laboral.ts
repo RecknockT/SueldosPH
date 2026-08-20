@@ -73,8 +73,15 @@ const ALICUOTAS = {
 export type FilaContribucion = {
   id: ClaveContribucion
   detalle: string
-  /** null cuando es un importe fijo y no un porcentaje del bruto. */
+  /** null cuando es un importe fijo y no un porcentaje. */
   alicuota: number | null
+  /**
+   * Base sobre la que se liquidó, null en los importes fijos. Se imprime en el
+   * recibo: sin esta columna, que dos conceptos con el mismo bruto den bases
+   * distintas parece un error en vez de la detracción del Dto. 814/2001.
+   * Opcional porque los recibos emitidos antes de incorporarla no la tienen.
+   */
+  base?: number | null
   monto: number
 }
 
@@ -110,66 +117,77 @@ export function calcularCostoLaboral(
       id: "jubilacionSipa",
       detalle: "JUBILACIÓN (SIPA)",
       alicuota: ALICUOTAS.jubilacionSipa,
+      base: baseNacional,
       monto: porcentajeNacional(ALICUOTAS.jubilacionSipa),
     },
     {
       id: "seguroVidaObligatorio",
       detalle: "SEGURO DE VIDA OBLIGATORIO",
       alicuota: null,
+      base: null,
       monto: seguro(config.seguroVidaObligatorio),
     },
     {
       id: "inssjp",
       detalle: "I.N.S.S.J.P (LEY 19.032)",
       alicuota: ALICUOTAS.inssjp,
+      base: baseNacional,
       monto: porcentajeNacional(ALICUOTAS.inssjp),
     },
     {
       id: "artAlicuota",
       detalle: "ART (ALÍCUOTA)",
       alicuota: seguro(config.artAlicuota),
+      base,
       monto: porcentaje(seguro(config.artAlicuota)),
     },
     {
       id: "asignacionesFamiliares",
       detalle: "ASIGNACIONES FAMILIARES (SUAF)",
       alicuota: ALICUOTAS.asignacionesFamiliares,
+      base: baseNacional,
       monto: porcentajeNacional(ALICUOTAS.asignacionesFamiliares),
     },
     {
       id: "cajaProteccionFamilia",
       detalle: "CAJA PROTECCIÓN FAMILIA",
       alicuota: ALICUOTAS.cajaProteccionFamilia,
+      base,
       monto: porcentaje(ALICUOTAS.cajaProteccionFamilia),
     },
     {
       id: "obraSocial",
       detalle: "OBRA SOCIAL",
       alicuota: ALICUOTAS.obraSocial,
+      base,
       monto: porcentaje(ALICUOTAS.obraSocial),
     },
     {
       id: "fateryhFmvdd",
       detalle: "FATERYH (F.M.V.D.D)",
       alicuota: ALICUOTAS.fateryhFmvdd,
+      base,
       monto: porcentaje(ALICUOTAS.fateryhFmvdd),
     },
     {
       id: "contribucionSolidaria",
       detalle: "CONTRIBUCIÓN SOLIDARIA",
       alicuota: null,
+      base: null,
       monto: Math.max(0, seguro(config.contribucionSolidaria)),
     },
     {
       id: "artMontoFijo",
       detalle: "ART (MONTO FIJO)",
       alicuota: null,
+      base: null,
       monto: seguro(config.artMontoFijo),
     },
     {
       id: "seracarh",
       detalle: "SERACARH",
       alicuota: ALICUOTAS.seracarh,
+      base,
       monto: porcentaje(ALICUOTAS.seracarh),
     },
   ]

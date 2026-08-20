@@ -126,6 +126,36 @@ describe("recibo 07-2026 con detracción y contribución solidaria", () => {
     casi(r.totalContribuciones, 733277.58)
     casi(r.costoTotal, 2661790.35)
   })
+
+  it("informa la base de cada línea, con la detracción donde corresponde", () => {
+    const base = (clave: ClaveContribucion) =>
+      r.contribuciones.find((c) => c.id === clave)?.base
+
+    casi(base("jubilacionSipa")!, BRUTO - 7003.68)
+    casi(base("inssjp")!, BRUTO - 7003.68)
+    casi(base("asignacionesFamiliares")!, BRUTO - 7003.68)
+
+    casi(base("obraSocial")!, BRUTO)
+    casi(base("artAlicuota")!, BRUTO)
+    casi(base("fateryhFmvdd")!, BRUTO)
+  })
+
+  it("los importes fijos no llevan base", () => {
+    const sinBase = r.contribuciones.filter((c) => c.base === null).map((c) => c.id)
+
+    assert.deepEqual(sinBase.sort(), [
+      "artMontoFijo",
+      "contribucionSolidaria",
+      "seguroVidaObligatorio",
+    ])
+  })
+
+  it("cada línea porcentual cierra: base por alícuota da el monto", () => {
+    for (const fila of r.contribuciones) {
+      if (fila.alicuota === null || fila.base == null) continue
+      casi((fila.base * fila.alicuota) / 100, fila.monto)
+    }
+  })
 })
 
 describe("detracción", () => {
