@@ -221,6 +221,54 @@ export function DialogoLegajo({
           <Separator />
 
           <div>
+            <p className="text-sm font-semibold">Costo laboral</p>
+            <p className="text-muted-foreground mt-1 mb-3 text-xs leading-relaxed">
+              Salen de la póliza del consorcio y se imprimen en el recibo junto a
+              las contribuciones patronales (Ley 27.802). El resto de las alícuotas
+              son de ley o de convenio y no se configuran.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <Campo id="art_alicuota" label="ART · alícuota (%)">
+                <Input
+                  id="art_alicuota"
+                  name="art_alicuota"
+                  type="number"
+                  min={0}
+                  step="any"
+                  defaultValue={legajo?.art_alicuota ?? 4.71}
+                  className="tabular"
+                />
+              </Campo>
+
+              <Campo id="art_monto_fijo" label="ART · monto fijo">
+                <Input
+                  id="art_monto_fijo"
+                  name="art_monto_fijo"
+                  type="number"
+                  min={0}
+                  step="any"
+                  defaultValue={legajo?.art_monto_fijo ?? 1765}
+                  className="tabular"
+                />
+              </Campo>
+
+              <Campo id="seguro_vida" label="Seguro de vida obligatorio">
+                <Input
+                  id="seguro_vida"
+                  name="seguro_vida"
+                  type="number"
+                  min={0}
+                  step="any"
+                  defaultValue={legajo?.seguro_vida ?? 424.62}
+                  className="tabular"
+                />
+              </Campo>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
             <p className="mb-3 text-sm font-semibold">Valores habituales</p>
             <div className="grid gap-4 sm:grid-cols-3">
               <Campo id="uf" label="UF del edificio">

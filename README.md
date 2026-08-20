@@ -12,10 +12,10 @@ cp .env.example .env.local   # completá las claves de Supabase
 npm run dev
 ```
 
-Una vez, en Supabase → SQL Editor, hay que ejecutar
-`supabase/migrations/0001_legajos_y_liquidaciones.sql`. Crea las tablas de
-legajos e historial con RLS por usuario. Sin eso la app liquida igual, pero no
-guarda nada y avisa en pantalla.
+En Supabase → SQL Editor hay que ejecutar, en orden, los archivos de
+`supabase/migrations/`. El primero crea las tablas de legajos e historial con
+RLS por usuario; el segundo suma los datos de póliza para el costo laboral.
+Sin el primero la app liquida igual, pero no guarda nada y avisa en pantalla.
 
 | Comando | Qué hace |
 | --- | --- |
@@ -151,6 +151,37 @@ Dos decisiones que conviene conocer:
   manda el navegador: vuelve a llamar a `calcularLiquidacion` con los mismos
   datos de entrada, así lo que queda emitido siempre es lo que produce el motor
   de cálculo.
+
+## Contribuciones patronales
+
+Desde el 1° de junio de 2026 el recibo debe informar, por trabajador, las
+contribuciones a cargo del empleador y el costo laboral total: lo estableció la
+Ley 27.802 (inciso j del art. 140 LCT) y lo reglamentó el Decreto 407/2026. En
+el recibo se imprime bajo "ART. 52 BIS LCT".
+
+`lib/costo-laboral.ts` calcula los diez conceptos. Las alícuotas son las del
+régimen reducido del Decreto 814/2001 —el que aplica a los consorcios— más los
+conceptos del CCT 589/10:
+
+| Concepto | Alícuota |
+| --- | --- |
+| Jubilación (SIPA) | 10,77% |
+| I.N.S.S.J.P (Ley 19.032) | 1,59% |
+| Asignaciones familiares (SUAF) | 5,64% |
+| Obra social (adicional) | 6% |
+| ART (alícuota) | de la póliza |
+| Caja protección familia | 1,50% |
+| FATERYH (F.M.V.D.D) | 4,75% |
+| SERACARH | 0,50% |
+| ART (monto fijo) | importe fijo |
+| Seguro de vida obligatorio | importe fijo |
+
+Los tres valores que dependen de la póliza de cada consorcio —alícuota de ART,
+monto fijo de ART y seguro de vida— se cargan en el legajo. El resto no se
+configura: son de ley o de convenio.
+
+Los tests reproducen al centavo las contribuciones de un recibo real de
+propiedad horizontal del período 06-2026.
 
 ## Cálculo
 

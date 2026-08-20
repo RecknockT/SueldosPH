@@ -2,6 +2,11 @@
 
 import { revalidatePath } from "next/cache"
 
+import {
+  CONFIG_COSTO_LABORAL_POR_DEFECTO,
+  calcularCostoLaboral,
+  type ConfigCostoLaboral,
+} from "@/lib/costo-laboral"
 import { traducirError } from "@/lib/datos/errores"
 import {
   ADICIONALES_INICIALES,
@@ -28,6 +33,8 @@ export type DatosLiquidacion = {
   aportes: EstadoAportes
   empleado: { nombre: string; cuil: string | null; fechaIngreso: string | null }
   empleador: { nombre: string | null; cuit: string | null }
+  /** Póliza de ART y seguro de vida; si falta se usan los valores por defecto. */
+  costoLaboral?: Partial<ConfigCostoLaboral>
 }
 
 export type EstadoGuardado = { error?: string; id?: string }
@@ -66,6 +73,11 @@ export async function guardarLiquidacion(
     aportes,
   })
 
+  const costoLaboral = calcularCostoLaboral(resultado.bruto, {
+    ...CONFIG_COSTO_LABORAL_POR_DEFECTO,
+    ...datos.costoLaboral,
+  })
+
   const snapshot: SnapshotLiquidacion = {
     version: 1,
     periodo: datos.periodo,
@@ -83,6 +95,7 @@ export async function guardarLiquidacion(
     adicionales,
     aportes,
     resultado,
+    costoLaboral,
   }
 
   const supabase = await createClient()
