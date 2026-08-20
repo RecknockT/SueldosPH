@@ -240,11 +240,27 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
           </ToggleGroupItem>
         </ToggleGroup>
 
-        <p className="text-muted-foreground text-xs">
+        <p className="text-muted-foreground hidden text-xs lg:block">
           {modoRapido
             ? "Calculás sin guardar nada. No se pide empleado ni queda en el historial."
             : "Elegís un legajo, se emite el recibo y queda registrado en el historial."}
         </p>
+
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-muted-foreground text-xs font-semibold">Planilla</span>
+          <Select value={planillaKey} onValueChange={cambiarPlanilla}>
+            <SelectTrigger className="w-[150px]" aria-label="Planilla">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PLANILLA_KEYS.map((key) => (
+                <SelectItem key={key} value={key}>
+                  {key}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <section className="bg-brand relative flex flex-wrap items-center justify-between gap-5 overflow-hidden rounded-2xl px-7 py-6 text-white shadow-[0_18px_40px_-18px_rgba(59,90,255,0.55)]">
@@ -524,19 +540,6 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
           <CardTitle>Aportes y contribuciones</CardTitle>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Select value={planillaKey} onValueChange={cambiarPlanilla}>
-              <SelectTrigger className="w-[150px]" aria-label="Planilla">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PLANILLA_KEYS.map((key) => (
-                  <SelectItem key={key} value={key}>
-                    {key}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
             <Button variant="outline" onClick={reiniciar}>
               <RotateCcw className="size-4" />
               Reiniciar

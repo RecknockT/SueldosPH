@@ -128,12 +128,28 @@ describe("calcularLiquidacion", () => {
     casi(liquidar({ entradas: { antiguedad: 5 } }).antiguedad, 5 * 22473.9)
   })
 
-  it("calcula las horas extra sobre el valor hora, al 100% en ambos casos", () => {
+  it("aplica a cada hora extra el recargo que le corresponde", () => {
     const r = liquidar({ entradas: { horas100: 3, horas50: 2 } })
     const valorHora = 1348432 / 200
 
     casi(r.valorHora, valorHora)
-    casi(r.horasExtras, 3 * valorHora * 2 + 2 * valorHora * 2)
+    casi(r.horasExtras, 3 * valorHora * 2 + 2 * valorHora * 1.5)
+  })
+
+  it("paga la hora al 100% más que la hora al 50%", () => {
+    const alCincuenta = liquidar({ entradas: { horas50: 10 } })
+    const alCien = liquidar({ entradas: { horas100: 10 } })
+
+    casi(alCien.horasExtras, (alCincuenta.horasExtras / 1.5) * 2)
+    assert.ok(alCien.horasExtras > alCincuenta.horasExtras)
+  })
+
+  it("imprime cada tramo de horas extra en su propia fila", () => {
+    const r = liquidar({ entradas: { horas50: 2, horas100: 3 } })
+    const detalles = r.haberes.map((fila) => fila.detalle)
+
+    assert.ok(detalles.includes("HORAS EXTRAS AL 50%"))
+    assert.ok(detalles.includes("HORAS EXTRAS AL 100%"))
   })
 
   it("liquida el retiro de residuos por unidad funcional", () => {
