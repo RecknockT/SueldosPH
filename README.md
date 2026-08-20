@@ -196,6 +196,34 @@ neto, los aportes del trabajador y las contribuciones patronales por familia.
 Los tests reproducen al centavo las contribuciones de dos recibos reales de
 propiedad horizontal, de los períodos 06-2026 y 07-2026.
 
+## Mudar el proyecto de Supabase
+
+Para cambiar de región o de proyecto:
+
+1. Crear el proyecto nuevo en Supabase, eligiendo la región más cercana a los
+   usuarios (para Argentina, São Paulo).
+2. En SQL Editor, pegar y ejecutar `supabase/esquema-completo.sql`. Es el
+   contenido de las tres migraciones en orden, unificado para no tener que
+   correrlas de a una.
+3. Authentication → Sign In / Providers → apagar "Allow new users to sign up".
+4. Authentication → Users → dar de alta los usuarios con "Add user". Las
+   contraseñas no se pueden migrar entre proyectos: hay que crearlas de nuevo.
+5. Si el proyecto viejo tenía datos, exportar `legajos` y `liquidaciones` desde
+   el Table Editor e importarlos en el nuevo, en ese orden (las liquidaciones
+   referencian legajos).
+6. Actualizar `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` en
+   Vercel y en `.env.local`, y redesplegar.
+
+Para verificar el resultado:
+
+```bash
+bash scripts/verificar-supabase.sh https://TU-PROYECTO.supabase.co TU_CLAVE
+```
+
+Chequea que existan las tablas con todas las columnas que consulta la app, que
+RLS bloquee el acceso anónimo, que el registro público esté cerrado y mide la
+latencia.
+
 ## Cálculo
 
 `lib/liquidacion.ts` concentra todas las reglas: básico por cargo y categoría,
