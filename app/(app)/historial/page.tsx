@@ -8,6 +8,12 @@ import { esMigracionPendiente } from "@/lib/datos/errores"
 import { listarLiquidaciones } from "@/lib/datos/liquidaciones"
 import type { LiquidacionGuardada } from "@/lib/tipos"
 
+/**
+ * Depende de la sesión del usuario: nunca se prerenderiza ni se cachea.
+ * Sin esto Next intenta generarla en build y falla antes de llegar a cookies().
+ */
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = { title: "Historial" }
 
 export default async function HistorialPage() {

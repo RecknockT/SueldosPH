@@ -13,7 +13,18 @@ const RUTAS_PROTEGIDAS = ["/sueldos", "/legajos", "/historial", "/recibo"]
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request })
 
-  const { url, anonKey } = supabaseEnv()
+  let url: string
+  let anonKey: string
+
+  try {
+    ;({ url, anonKey } = supabaseEnv())
+  } catch (error) {
+    // Sin configuración no se puede resolver la sesión, pero tirar acá dejaría
+    // el sitio entero en 500 — incluida la landing pública. Se deja pasar el
+    // request y cada página protegida avisa por su cuenta.
+    console.error("[proxy]", error instanceof Error ? error.message : error)
+    return response
+  }
 
   const supabase = createServerClient(url, anonKey, {
     cookies: {

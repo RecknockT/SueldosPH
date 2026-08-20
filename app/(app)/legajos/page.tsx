@@ -9,6 +9,12 @@ import { esMigracionPendiente } from "@/lib/datos/errores"
 import { listarLegajos } from "@/lib/datos/legajos"
 import type { Legajo } from "@/lib/tipos"
 
+/**
+ * Depende de la sesión del usuario: nunca se prerenderiza ni se cachea.
+ * Sin esto Next intenta generarla en build y falla antes de llegar a cookies().
+ */
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = { title: "Legajos" }
 
 export default async function LegajosPage() {
