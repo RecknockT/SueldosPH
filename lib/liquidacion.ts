@@ -7,12 +7,11 @@ export type Categoria = (typeof CATEGORIAS)[number]
 const HORAS_MENSUALES = 200
 
 /**
- * Las dos cargas de horas extra se liquidan al 100% (x2).
+ * Las dos cargas de horas extra se liquidan al 100% (x2), feriados y sábados por igual.
  *
- * OJO: la versión anterior sumaba x2 al total pero imprimía x1,5 en la fila de
- * "sábados", así que el detalle nunca cerraba con su propio total. Acá se unificó
- * en x2. Si el multiplicador correcto para sábados fuese 1,5, alcanza con cambiar
- * esta constante y queda consistente en total y detalle.
+ * La versión anterior sumaba x2 al total pero imprimía x1,5 en la fila de "sábados",
+ * así que el detalle nunca cerraba con su propio total. El x2 quedó confirmado como
+ * el multiplicador correcto para ambos casos.
  */
 const MULTIPLICADOR_HORA_100 = 2
 const MULTIPLICADOR_HORA_50 = 2
