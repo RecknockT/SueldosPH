@@ -28,6 +28,11 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { CampoNumero } from "./campo-numero"
 import { DialogRecibo } from "./dialog-recibo"
 
+import {
+  CONFIG_COSTO_LABORAL_POR_DEFECTO,
+  calcularCostoLaboral,
+  type ConfigCostoLaboral,
+} from "@/lib/costo-laboral"
 import { formatPesos, formatPesosCompacto } from "@/lib/format"
 import { aniosDeAntiguedad } from "@/lib/periodos"
 import { PLANILLAS, PLANILLA_KEYS, PLANILLA_POR_DEFECTO } from "@/lib/planillas"
@@ -85,6 +90,9 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
   const [adicionales, setAdicionales] = useState<EstadoAdicionales>(ADICIONALES_INICIALES)
   const [aportes, setAportes] = useState<EstadoAportes>(APORTES_INICIALES)
   const [reciboAbierto, setReciboAbierto] = useState(false)
+  const [configCosto, setConfigCosto] = useState<ConfigCostoLaboral>(
+    CONFIG_COSTO_LABORAL_POR_DEFECTO
+  )
   const [modo, setModo] = usePreferenciaLocal(CLAVE_MODO, "legajo")
 
   const modoRapido = modo === "rapido"
@@ -99,6 +107,11 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
   const liquidacion = useMemo(
     () => calcularLiquidacion({ planilla, cargo, categoria, entradas, adicionales, aportes }),
     [planilla, cargo, categoria, entradas, adicionales, aportes]
+  )
+
+  const costoLaboral = useMemo(
+    () => calcularCostoLaboral(liquidacion.bruto, configCosto),
+    [liquidacion.bruto, configCosto]
   )
 
   const setEntrada = (key: ClaveEntrada) => (valor: number | "") =>
@@ -116,6 +129,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
       setEntradas(ENTRADAS_INICIALES)
       setAdicionales(ADICIONALES_INICIALES)
       setAportes(APORTES_INICIALES)
+      setConfigCosto(CONFIG_COSTO_LABORAL_POR_DEFECTO)
       return
     }
 
@@ -141,6 +155,12 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
     })
     setAdicionales({ ...ADICIONALES_INICIALES, ...legajo.adicionales })
     setAportes({ ...APORTES_INICIALES, ...legajo.aportes })
+    setConfigCosto({
+      artAlicuota: legajo.art_alicuota ?? CONFIG_COSTO_LABORAL_POR_DEFECTO.artAlicuota,
+      artMontoFijo: legajo.art_monto_fijo ?? CONFIG_COSTO_LABORAL_POR_DEFECTO.artMontoFijo,
+      seguroVidaObligatorio:
+        legajo.seguro_vida ?? CONFIG_COSTO_LABORAL_POR_DEFECTO.seguroVidaObligatorio,
+    })
   }
 
   const cambiarPlanilla = (valor: string) => {
@@ -191,6 +211,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
           nombre: empleado.consorcioNombre || null,
           cuit: empleado.consorcioCuit || null,
         },
+        costoLaboral: configCosto,
       })
 
       if (resultado.error) {
@@ -205,10 +226,14 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
   const uf = numero(entradas.uf)
 
   const estadisticas = [
-    { label: "Sueldo básico", valor: formatPesos(liquidacion.sueldoBasico) },
     { label: "Total haberes", valor: formatPesos(liquidacion.bruto) },
     { label: "Descuentos", valor: `−${formatPesos(liquidacion.descuentos)}` },
     { label: "Neto a cobrar", valor: formatPesos(liquidacion.neto), destacado: true },
+    {
+      label: "Costo para el consorcio",
+      valor: formatPesos(costoLaboral.costoTotal),
+      ayuda: `Incluye ${formatPesos(costoLaboral.totalContribuciones)} de contribuciones patronales`,
+    },
   ]
 
   const activos = legajos.filter((l) => l.activo)
@@ -298,6 +323,11 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
               >
                 {stat.valor}
               </p>
+              {stat.ayuda ? (
+                <p className="text-muted-foreground/70 mt-1 text-[11px] leading-tight">
+                  {stat.ayuda}
+                </p>
+              ) : null}
             </CardContent>
           </Card>
         ))}

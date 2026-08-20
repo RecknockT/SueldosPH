@@ -9,6 +9,10 @@ import type { LiquidacionGuardada } from "@/lib/tipos"
  * explícitos, no los tokens del tema oscuro de la app.
  */
 
+/** Las alícuotas van con dos decimales, como en el recibo de referencia. */
+const formatAlicuota = (valor: number) =>
+  `${valor.toFixed(2).replace(".", ",")}%`
+
 function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   return (
     <div className="min-w-0">
@@ -45,7 +49,7 @@ export function DocumentoRecibo({
   copia: "ORIGINAL" | "DUPLICADO"
 }) {
   const { snapshot } = liquidacion
-  const { empleado, empleador, resultado } = snapshot
+  const { empleado, empleador, resultado, costoLaboral } = snapshot
 
   return (
     <article className="recibo-copia mx-auto w-full max-w-[190mm] bg-white p-4 text-neutral-900 sm:p-6">
@@ -138,6 +142,62 @@ export function DocumentoRecibo({
           </div>
         </div>
       </div>
+
+      {costoLaboral ? (
+        <section className="mt-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 bg-[#0e9fd8] px-3 py-1.5 text-white">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-[10px] font-bold tracking-wide uppercase">
+                Contribuciones a cargo del empleador
+              </h2>
+              <span className="rounded bg-[#f5a623] px-1.5 py-0.5 text-[8px] font-bold tracking-wide text-neutral-900 uppercase">
+                Nuevo · Ley 27.802
+              </span>
+            </div>
+            <span className="text-[8px] font-semibold tracking-wide uppercase opacity-90">
+              Art. 52 bis LCT
+            </span>
+          </div>
+
+          <dl className="grid grid-cols-1 gap-x-6 border-x border-b border-neutral-300 px-3 py-2 sm:grid-cols-2">
+            {costoLaboral.contribuciones.map((fila) => (
+              <div
+                key={fila.id}
+                className="flex items-baseline justify-between gap-2 border-b border-neutral-100 py-1 last:border-0"
+              >
+                <dt className="text-[10px] font-semibold">{fila.detalle}</dt>
+                <dd className="flex shrink-0 items-baseline gap-2">
+                  <span className="tabular text-[9px] text-neutral-500">
+                    {fila.alicuota === null ? "—" : formatAlicuota(fila.alicuota)}
+                  </span>
+                  <span className="tabular text-[10px] font-medium">
+                    {formatPesos(fila.monto)}
+                  </span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2">
+            <div className="flex items-baseline justify-between gap-2 bg-neutral-100 px-3 py-2">
+              <span className="text-[9px] font-bold tracking-wide uppercase">
+                Total contribuciones patronales
+              </span>
+              <span className="tabular text-[11px] font-bold">
+                {formatPesos(costoLaboral.totalContribuciones)}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between gap-2 bg-[#0e9fd8] px-3 py-2 text-white">
+              <span className="text-[9px] font-bold tracking-wide uppercase">
+                Costo total del empleador
+              </span>
+              <span className="tabular text-[11px] font-bold">
+                {formatPesos(costoLaboral.costoTotal)}
+              </span>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <footer className="mt-8 grid grid-cols-2 gap-8">
         <div>

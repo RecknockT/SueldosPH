@@ -1,3 +1,4 @@
+import type { CostoLaboral } from "./costo-laboral"
 import type {
   Categoria,
   Entradas,
@@ -23,6 +24,10 @@ export type Legajo = {
   aportes: Partial<EstadoAportes>
   activo: boolean
   notas: string | null
+  /** Póliza de ART y seguro de vida del consorcio, para el costo laboral. */
+  art_alicuota: number
+  art_monto_fijo: number
+  seguro_vida: number
   created_at: string
   updated_at: string
 }
@@ -57,6 +62,11 @@ export type SnapshotLiquidacion = {
   adicionales: EstadoAdicionales
   aportes: EstadoAportes
   resultado: Liquidacion
+  /**
+   * Contribuciones patronales y costo total (Ley 27.802 / Dto. 407/2026).
+   * Opcional: los recibos emitidos antes de incorporarlo no lo tienen.
+   */
+  costoLaboral?: CostoLaboral
 }
 
 /** Fila de public.liquidaciones. */

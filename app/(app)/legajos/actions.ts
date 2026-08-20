@@ -66,6 +66,9 @@ export async function guardarLegajo(formData: FormData): Promise<EstadoLegajo> {
       ...APORTES_INICIALES,
       ...banderas(formData, "aporte", CAMPOS_APORTE.map((c) => c.key)),
     },
+    art_alicuota: numero(formData, "art_alicuota"),
+    art_monto_fijo: numero(formData, "art_monto_fijo"),
+    seguro_vida: numero(formData, "seguro_vida"),
     activo: formData.get("activo") === "on",
     notas: texto(formData, "notas"),
   }
