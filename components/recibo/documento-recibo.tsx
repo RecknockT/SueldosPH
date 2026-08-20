@@ -1,5 +1,11 @@
 import { GraficoCosto } from "@/components/recibo/grafico-costo"
 import { componerCostoLaboral } from "@/lib/composicion-costo"
+import {
+  letraDeBase,
+  referenciasDeBase,
+  type FilaContribucion,
+  type ReferenciaBase,
+} from "@/lib/costo-laboral"
 import { formatPesos } from "@/lib/format"
 import { pesosEnLetras } from "@/lib/letras"
 import { formatFecha, formatFechaHora } from "@/lib/periodos"
@@ -68,6 +74,64 @@ function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   )
 }
 
+/** Marcador de base: tiene que engancharse a simple vista con la nota al pie. */
+function Marca({ letra }: { letra: string }) {
+  return (
+    <span className="font-bold" style={{ color: BANDA }}>
+      {letra}
+    </span>
+  )
+}
+
+function TablaContribuciones({
+  filas,
+  referencias,
+}: {
+  filas: FilaContribucion[]
+  referencias: ReferenciaBase[]
+}) {
+  return (
+    <table className="w-full border-collapse">
+      <thead>
+        <tr className="border-b border-neutral-300">
+          <th className="w-[52%] px-1.5 py-1.5 text-left">
+            <Rotulo>Concepto</Rotulo>
+          </th>
+          <th className="px-1.5 py-1.5 text-right">
+            <Rotulo>Alícuota</Rotulo>
+          </th>
+          <th className="px-1.5 py-1.5 text-center">
+            <Rotulo>Base</Rotulo>
+          </th>
+          <th className="px-1.5 py-1.5 text-right">
+            <Rotulo>Monto</Rotulo>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {filas.map((fila) => {
+          const letra = letraDeBase(fila, referencias)
+
+          return (
+            <tr key={fila.id} className="border-b border-neutral-100 even:bg-neutral-50/70">
+              <td className="px-1.5 py-1 text-[10.5px]">{fila.detalle}</td>
+              <td className="tabular px-1.5 py-1 text-right text-[10px] text-neutral-500">
+                {fila.alicuota === null ? "—" : formatAlicuota(fila.alicuota)}
+              </td>
+              <td className="px-1.5 py-1 text-center text-[10px]">
+                {letra ? <Marca letra={letra} /> : <span className="text-neutral-400">—</span>}
+              </td>
+              <td className="tabular px-1.5 py-1 text-right text-[10.5px]">
+                {formatPesos(fila.monto)}
+              </td>
+            </tr>
+          )
+        })}
+      </tbody>
+    </table>
+  )
+}
+
 function FilaLiquidacion({ fila }: { fila: FilaRecibo }) {
   return (
     <tr className="border-b border-neutral-100 even:bg-neutral-50/70">
@@ -102,6 +166,12 @@ export function DocumentoRecibo({
   const composicion = costoLaboral
     ? componerCostoLaboral(costoLaboral, resultado.neto, resultado.descuentos)
     : null
+
+  // Las contribuciones van en dos columnas: once filas en una sola son media
+  // hoja. El corte deja la columna izquierda con la de más.
+  const contribuciones = costoLaboral?.contribuciones ?? []
+  const referencias = referenciasDeBase(contribuciones)
+  const corte = Math.ceil(contribuciones.length / 2)
 
   return (
     <article className="recibo-copia mx-auto w-full max-w-[190mm] bg-white p-4 text-neutral-900 sm:p-6">
@@ -220,52 +290,32 @@ export function DocumentoRecibo({
           </div>
 
           <div className="overflow-x-auto print:overflow-visible">
-            <table className="w-full min-w-[340px] border-collapse">
-              <thead>
-                <tr className="border-b border-neutral-300">
-                  <th className="w-[40%] px-2 py-1.5 text-left">
-                    <Rotulo>Concepto</Rotulo>
-                  </th>
-                  <th className="px-2 py-1.5 text-right">
-                    <Rotulo>Alícuota</Rotulo>
-                  </th>
-                  <th className="px-2 py-1.5 text-right">
-                    <Rotulo>Base de cálculo</Rotulo>
-                  </th>
-                  <th className="px-2 py-1.5 text-right">
-                    <Rotulo>Monto</Rotulo>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {costoLaboral.contribuciones.map((fila) => (
-                  <tr
-                    key={fila.id}
-                    className="border-b border-neutral-100 even:bg-neutral-50/70"
-                  >
-                    <td className="px-2 py-1 text-[11px]">{fila.detalle}</td>
-                    <td className="tabular px-2 py-1 text-right text-[10px] text-neutral-500">
-                      {fila.alicuota === null ? "—" : formatAlicuota(fila.alicuota)}
-                    </td>
-                    <td className="tabular px-2 py-1 text-right text-[10px] text-neutral-500">
-                      {fila.base == null ? "—" : formatPesos(fila.base)}
-                    </td>
-                    <td className="tabular px-2 py-1 text-right text-[11px]">
-                      {formatPesos(fila.monto)}
-                    </td>
-                  </tr>
-                ))}
-                <tr className="border-t-[1.5px] border-neutral-900 font-bold">
-                  <td className="px-2 pt-1.5 text-[11px]">Subtotal contribuciones</td>
-                  <td />
-                  <td />
-                  <td className="tabular px-2 pt-1.5 text-right text-[11px]">
-                    {formatPesos(costoLaboral.totalContribuciones)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div className="grid min-w-[320px] gap-x-6 sm:grid-cols-2 print:grid-cols-2">
+              <TablaContribuciones
+                filas={contribuciones.slice(0, corte)}
+                referencias={referencias}
+              />
+              <TablaContribuciones
+                filas={contribuciones.slice(corte)}
+                referencias={referencias}
+              />
+            </div>
+
+            <div className="mt-1.5 flex items-baseline justify-between gap-3 border-t-[1.5px] border-neutral-900 px-1.5 pt-1.5 font-bold">
+              <span className="text-[11px]">Subtotal contribuciones</span>
+              <span className="tabular text-[11px]">
+                {formatPesos(costoLaboral.totalContribuciones)}
+              </span>
+            </div>
           </div>
+
+          <p className="mt-2 flex flex-wrap gap-x-4 gap-y-0.5 px-1.5 text-[10px] text-neutral-500">
+            {referencias.map((ref) => (
+              <span key={ref.letra}>
+                <Marca letra={ref.letra} /> {formatPesos(ref.base)}
+              </span>
+            ))}
+          </p>
 
           <p className="mt-2 border-t border-neutral-200 pt-2 text-[10px] leading-relaxed text-neutral-500">
             La base de las contribuciones nacionales —jubilación, INSSJP y asignaciones

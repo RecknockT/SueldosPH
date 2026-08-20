@@ -4,6 +4,8 @@ import { describe, it } from "node:test"
 import {
   CONFIG_COSTO_LABORAL_POR_DEFECTO,
   calcularCostoLaboral,
+  letraDeBase,
+  referenciasDeBase,
   type ClaveContribucion,
 } from "./costo-laboral.ts"
 
@@ -228,5 +230,44 @@ describe("bordes", () => {
   it("trata un bruto negativo o no finito como cero", () => {
     casi(calcularCostoLaboral(-1000).costoTotal, 1765 + 424.62)
     casi(calcularCostoLaboral(Number.NaN).costoTotal, 1765 + 424.62)
+  })
+})
+
+describe("referencias de base", () => {
+  const r = calcularCostoLaboral(1000000, CONFIG_COSTO_LABORAL_POR_DEFECTO)
+  const refs = referenciasDeBase(r.contribuciones)
+
+  it("agrupa las dos bases distintas en dos referencias", () => {
+    assert.deepEqual(
+      refs.map((x) => x.letra),
+      ["a", "b"]
+    )
+  })
+
+  it("la primera es la de las contribuciones nacionales", () => {
+    casi(refs[0].base, 1000000 - 7003.68)
+    casi(refs[1].base, 1000000)
+  })
+
+  it("cada fila porcentual recibe su letra y las fijas ninguna", () => {
+    const conLetra = r.contribuciones.filter(
+      (c) => letraDeBase(c, refs) !== null
+    ).length
+    const sinLetra = r.contribuciones.filter((c) => letraDeBase(c, refs) === null)
+
+    assert.equal(conLetra, 8)
+    assert.deepEqual(sinLetra.map((c) => c.id).sort(), [
+      "artMontoFijo",
+      "contribucionSolidaria",
+      "seguroVidaObligatorio",
+    ])
+  })
+
+  it("no genera referencias cuando no hay bases", () => {
+    const sinBases = calcularCostoLaboral(0, {
+      artAlicuota: 0, artMontoFijo: 100, seguroVidaObligatorio: 50,
+      detraccion: 0, contribucionSolidaria: 0,
+    })
+    assert.deepEqual(referenciasDeBase(sinBases.contribuciones), [{ letra: "a", base: 0 }])
   })
 })
