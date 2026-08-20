@@ -28,6 +28,8 @@ export type Legajo = {
   art_alicuota: number
   art_monto_fijo: number
   seguro_vida: number
+  detraccion: number
+  contribucion_solidaria: number
   created_at: string
   updated_at: string
 }
