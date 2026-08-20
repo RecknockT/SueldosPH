@@ -48,7 +48,7 @@ export function DocumentoRecibo({
   const { empleado, empleador, resultado } = snapshot
 
   return (
-    <article className="recibo-copia mx-auto w-full max-w-[190mm] bg-white p-6 text-neutral-900">
+    <article className="recibo-copia mx-auto w-full max-w-[190mm] bg-white p-4 text-neutral-900 sm:p-6">
       <header className="flex items-start justify-between gap-4 border-b-2 border-neutral-800 pb-3">
         <div className="min-w-0">
           <p className="truncate text-sm font-bold">
@@ -82,7 +82,13 @@ export function DocumentoRecibo({
         />
       </dl>
 
-      <table className="w-full border-collapse">
+      {/*
+        En pantalla angosta la grilla de conceptos no baja de ~340px, así que
+        scrollea dentro de su caja en vez de desbordar la hoja. Al imprimir la
+        A4 sobra ancho y el contenedor se desactiva.
+      */}
+      <div className="overflow-x-auto print:overflow-visible">
+      <table className="w-full min-w-[340px] border-collapse">
         <thead>
           <tr className="border-b border-neutral-400">
             <th className="px-2 py-1 text-left text-[9px] font-semibold tracking-wide text-neutral-600 uppercase">
@@ -108,6 +114,7 @@ export function DocumentoRecibo({
           ))}
         </tbody>
       </table>
+      </div>
 
       <div className="mt-3 border-t-2 border-neutral-800 pt-3">
         <div className="flex items-end justify-between gap-4">
