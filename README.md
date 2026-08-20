@@ -32,6 +32,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 En Vercel hay que cargarlas en Settings → Environment Variables para Production,
 Preview y Development. Sin ellas el build falla con un mensaje explícito.
 
+## Deploy en Vercel
+
+`vercel.json` fija `"framework": "nextjs"`, y eso pisa el preset del panel — de
+otro modo el proyecto seguiría buildeando como Vite, que es lo que era antes.
+
+Lo único que hay que hacer a mano es cargar las dos variables de entorno de
+arriba. Después, cada push a la rama de producción despliega solo.
+
 ## Estructura
 
 ```
