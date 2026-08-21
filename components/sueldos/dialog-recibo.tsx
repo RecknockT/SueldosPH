@@ -68,6 +68,19 @@ export function DialogRecibo({
           <DialogDescription>
             {cargo} · Categoría {categoria} · {planilla}
           </DialogDescription>
+
+          {/* Las horas extras de la tabla salen de acá; sin el jornal no hay
+              forma de verificarlas. */}
+          {liquidacion.valorHora > 0 ? (
+            <p className="border-border mt-3 inline-flex w-fit items-baseline gap-2 rounded-md border px-2.5 py-1">
+              <span className="text-muted-foreground text-[11px] font-semibold tracking-wider uppercase">
+                Jornal · hora
+              </span>
+              <span className="tabular text-sm font-bold">
+                {formatPesos(liquidacion.valorHora)}
+              </span>
+            </p>
+          ) : null}
         </DialogHeader>
 
         <Table className="mt-5 text-sm">
@@ -102,7 +115,9 @@ export function DialogRecibo({
         <dl className="space-y-2 text-sm">
           <div className="flex items-baseline justify-between gap-4">
             <dt className="text-muted-foreground">Total haberes</dt>
-            <dd className="tabular font-medium">{formatPesos(liquidacion.bruto)}</dd>
+            <dd className="tabular font-medium">
+              {formatPesos(liquidacion.totalHaberes)}
+            </dd>
           </div>
 
           <div className="flex items-baseline justify-between gap-4">
@@ -113,12 +128,10 @@ export function DialogRecibo({
           </div>
 
           {liquidacion.noRemunerativo > 0 ? (
-            <div className="flex items-baseline justify-between gap-4">
-              <dt className="text-muted-foreground">Adicional no remunerativo</dt>
-              <dd className="tabular font-medium">
-                {formatPesos(liquidacion.noRemunerativo)}
-              </dd>
-            </div>
+            <p className="text-muted-foreground text-xs">
+              Incluye {formatPesos(liquidacion.noRemunerativo)} no remunerativo, que
+              no paga aportes.
+            </p>
           ) : null}
 
           <div className="border-border mt-3 flex items-baseline justify-between gap-4 border-t pt-3">

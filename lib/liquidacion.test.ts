@@ -526,3 +526,29 @@ describe("horas fijas con su propia línea", () => {
     assert.equal(r.haberes.find((f) => f.id === "horas100-s")?.detalle, "HORAS EXTRAS SÁBADOS AL 100%")
   })
 })
+
+describe("el resumen del detalle cierra", () => {
+  it("total haberes menos descuentos da el neto", () => {
+    // Es la cuenta que muestra el diálogo de detalle: si totalHaberes no
+    // incluyera lo no remunerativo, el resumen no daría el neto.
+    const r = liquidar({
+      entradas: { uf: 20, antiguedad: 5, horas100: 4 },
+      adicionales: { retiroResiduos: true, jardin: true },
+      ajustes: [
+        { id: "a", concepto: "Vacaciones", columna: "haber", monto: 80000, remunerativo: true },
+        { id: "b", concepto: "Viático", columna: "haber", monto: 30000, remunerativo: false },
+        { id: "c", concepto: "Anticipo", columna: "descuento", monto: 50000, remunerativo: false },
+      ],
+    })
+
+    assert.ok(r.noRemunerativo > 0, "el caso tiene que tener algo no remunerativo")
+    casi(r.totalHaberes - r.descuentos, r.neto)
+  })
+
+  it("sin nada no remunerativo, totalHaberes es el bruto", () => {
+    const r = liquidar({ entradas: { horas100: 4 } })
+
+    casi(r.totalHaberes, r.bruto)
+    casi(r.totalHaberes - r.descuentos, r.neto)
+  })
+})
