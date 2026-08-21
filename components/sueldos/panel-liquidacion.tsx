@@ -27,6 +27,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 import { CalendarioPeriodo, TituloCalendario } from "./calendario-periodo"
 import { CampoNumero } from "./campo-numero"
+import { TablaAjustes } from "./tabla-ajustes"
 import { DialogRecibo } from "./dialog-recibo"
 
 import {
@@ -50,6 +51,7 @@ import {
   calcularLiquidacion,
   formatPorcentaje,
   montoAdicionalDe,
+  type Ajuste,
   type Categoria,
   type ClaveEntrada,
   type EstadoAdicionales,
@@ -90,6 +92,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
   const [entradas, setEntradas] = useState<Entradas>(ENTRADAS_INICIALES)
   const [adicionales, setAdicionales] = useState<EstadoAdicionales>(ADICIONALES_INICIALES)
   const [aportes, setAportes] = useState<EstadoAportes>(APORTES_INICIALES)
+  const [ajustes, setAjustes] = useState<Ajuste[]>([])
   const [reciboAbierto, setReciboAbierto] = useState(false)
   const [configCosto, setConfigCosto] = useState<ConfigCostoLaboral>(
     CONFIG_COSTO_LABORAL_POR_DEFECTO
@@ -106,8 +109,9 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
   )
 
   const liquidacion = useMemo(
-    () => calcularLiquidacion({ planilla, cargo, categoria, entradas, adicionales, aportes }),
-    [planilla, cargo, categoria, entradas, adicionales, aportes]
+    () =>
+      calcularLiquidacion({ planilla, cargo, categoria, entradas, adicionales, aportes, ajustes }),
+    [planilla, cargo, categoria, entradas, adicionales, aportes, ajustes]
   )
 
   const costoLaboral = useMemo(
@@ -194,6 +198,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
     setEntradas(ENTRADAS_INICIALES)
     setAdicionales(ADICIONALES_INICIALES)
     setAportes(APORTES_INICIALES)
+    setAjustes([])
     setReciboAbierto(false)
     toast.success("Formulario reiniciado")
   }
@@ -213,6 +218,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
         entradas,
         adicionales,
         aportes,
+        ajustes,
         empleado: {
           nombre: empleado.nombre,
           cuil: empleado.cuil || null,
@@ -575,6 +581,15 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
           </CardContent>
         </Card>
       </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Ajustes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TablaAjustes ajustes={ajustes} onCambiar={setAjustes} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

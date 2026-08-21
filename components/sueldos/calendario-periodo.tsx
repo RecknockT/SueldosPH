@@ -50,6 +50,8 @@ export function CalendarioPeriodo({
   const [seleccion, setSeleccion] = useState<Seleccion>(6)
   const [horasPorDia, setHorasPorDia] = useState<number | "">(0)
   const [tramo, setTramo] = useState<"horas50" | "horas100">("horas100")
+  // La grilla arranca oculta: lo que se consulta seguido son los totales.
+  const [grillaVisible, setGrillaVisible] = useState(false)
 
   const calendario = useMemo(() => calendarioDe(periodo), [periodo])
   const feriados = useMemo(() => diasFeriadosDelPeriodo(periodo), [periodo])
@@ -82,7 +84,7 @@ export function CalendarioPeriodo({
 
   return (
     <div className="space-y-4">
-      <p className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-1 text-xs">
+      <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
         <span>
           <span className="text-foreground font-semibold tabular">{resumen.habiles}</span>{" "}
           hábiles
@@ -99,8 +101,21 @@ export function CalendarioPeriodo({
           <span className="text-foreground font-semibold tabular">{resumen.feriados}</span>{" "}
           {resumen.feriados === 1 ? "feriado" : "feriados"}
         </span>
-      </p>
 
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2 text-xs"
+          aria-expanded={grillaVisible}
+          onClick={() => setGrillaVisible((v) => !v)}
+        >
+          <CalendarDays className="size-3.5" />
+          {grillaVisible ? "Ocultar calendario" : "Mostrar calendario"}
+        </Button>
+      </div>
+
+      {grillaVisible ? (
       <div>
         <div className="text-muted-foreground mb-2 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold">
           {INICIALES.map((inicial, i) => (
@@ -164,6 +179,7 @@ export function CalendarioPeriodo({
           </p>
         )}
       </div>
+      ) : null}
 
       <div className="border-border space-y-3 border-t pt-3">
         <div className="grid gap-3 sm:grid-cols-2">
@@ -261,10 +277,5 @@ export function CalendarioPeriodo({
 }
 
 export function TituloCalendario({ periodo }: { periodo: string }) {
-  return (
-    <span className="flex items-center gap-2">
-      <CalendarDays className="text-muted-foreground size-4" />
-      Calendario de {periodo}
-    </span>
-  )
+  return <>Horas por día · {periodo}</>
 }

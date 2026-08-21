@@ -14,6 +14,7 @@ import {
   ENTRADAS_INICIALES,
   calcularLiquidacion,
   type Categoria,
+  type Ajuste,
   type Entradas,
   type EstadoAdicionales,
   type EstadoAportes,
@@ -31,6 +32,7 @@ export type DatosLiquidacion = {
   entradas: Entradas
   adicionales: EstadoAdicionales
   aportes: EstadoAportes
+  ajustes?: Ajuste[]
   empleado: { nombre: string; cuil: string | null; fechaIngreso: string | null }
   empleador: { nombre: string | null; cuit: string | null }
   /** Póliza de ART y seguro de vida; si falta se usan los valores por defecto. */
@@ -64,6 +66,8 @@ export async function guardarLiquidacion(
   const adicionales: EstadoAdicionales = { ...ADICIONALES_INICIALES, ...datos.adicionales }
   const aportes: EstadoAportes = { ...APORTES_INICIALES, ...datos.aportes }
 
+  const ajustes = datos.ajustes ?? []
+
   const resultado = calcularLiquidacion({
     planilla,
     cargo,
@@ -71,6 +75,7 @@ export async function guardarLiquidacion(
     entradas,
     adicionales,
     aportes,
+    ajustes,
   })
 
   const costoLaboral = calcularCostoLaboral(
@@ -95,6 +100,7 @@ export async function guardarLiquidacion(
     entradas,
     adicionales,
     aportes,
+    ajustes,
     resultado,
     costoLaboral,
   }

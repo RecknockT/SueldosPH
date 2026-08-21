@@ -1,5 +1,6 @@
 import type { CostoLaboral } from "./costo-laboral"
 import type {
+  Ajuste,
   Categoria,
   Entradas,
   EstadoAdicionales,
@@ -63,6 +64,8 @@ export type SnapshotLiquidacion = {
   entradas: Entradas
   adicionales: EstadoAdicionales
   aportes: EstadoAportes
+  /** Líneas libres. Opcional: los recibos anteriores no las tienen. */
+  ajustes?: Ajuste[]
   resultado: Liquidacion
   /**
    * Contribuciones patronales y costo total (Ley 27.802 / Dto. 407/2026).
