@@ -401,12 +401,23 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
           </p>
         </div>
 
-        <Badge
-          variant="outline"
-          className="relative border-white/25 bg-white/15 px-4 py-2 text-sm font-semibold text-white"
-        >
-          Básico {formatPesosCompacto(liquidacion.sueldoBasico)}
-        </Badge>
+        <div className="relative flex flex-wrap items-center gap-2">
+          <Badge
+            variant="outline"
+            className="border-white/25 bg-white/15 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Básico {formatPesosCompacto(liquidacion.sueldoBasico)}
+          </Badge>
+
+          {/* El jornal es la base de las horas extras: conviene verlo mientras
+              se carga, no después. Al recibo no va. */}
+          <Badge
+            variant="outline"
+            className="border-white/25 bg-white/15 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Jornal/hora {formatPesos(liquidacion.valorHora)}
+          </Badge>
+        </div>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

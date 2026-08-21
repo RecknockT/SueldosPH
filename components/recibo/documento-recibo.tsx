@@ -193,27 +193,14 @@ export function DocumentoRecibo({
             Ley 20.744 · Período {snapshot.periodo} · {copia}
           </p>
 
-          <div className="mt-1.5 flex items-stretch justify-end gap-1.5">
-            {costoLaboral ? (
-              <span
-                className="inline-flex -rotate-1 items-center rounded-sm border-[1.5px] px-1.5 text-[9px] font-bold tracking-[0.1em] uppercase"
-                style={{ borderColor: "#a8441a", color: "#a8441a" }}
-              >
-                Ley 27.802
-              </span>
-            ) : null}
-
-            {/* El jornal es la base de las horas extras: sin él no hay forma de
-                verificarlas desde el recibo. */}
-            {resultado.valorHora > 0 ? (
-              <span className="inline-block rounded-sm border-[1.5px] border-neutral-900 px-2 py-0.5 text-right">
-                <Rotulo>Jornal · hora</Rotulo>
-                <span className="tabular block text-[12px] leading-tight font-bold">
-                  {formatPesos(resultado.valorHora)}
-                </span>
-              </span>
-            ) : null}
-          </div>
+          {costoLaboral ? (
+            <span
+              className="mt-1 inline-block -rotate-1 rounded-sm border-[1.5px] px-1.5 py-0.5 text-[9px] font-bold tracking-[0.1em] uppercase"
+              style={{ borderColor: "#a8441a", color: "#a8441a" }}
+            >
+              Ley 27.802
+            </span>
+          ) : null}
         </div>
       </header>
 

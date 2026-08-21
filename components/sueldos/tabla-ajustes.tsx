@@ -23,7 +23,8 @@ import { AJUSTE_VACIO, type Ajuste, type ColumnaAjuste } from "@/lib/liquidacion
  *
  * Cubre lo que no es un concepto de la planilla: sumas remunerativas puntuales,
  * vacaciones, anticipos, embargos, préstamos. Cada línea decide si va como
- * haber o descuento, si integra la base de aportes, y si entra al valor hora.
+ * haber o descuento y, si es haber, si es remunerativo: eso decide de una vez
+ * si paga aportes y si entra al valor hora.
  */
 export function TablaAjustes({
   ajustes,
@@ -82,9 +83,8 @@ export function TablaAjustes({
               setBorrador((p) => ({
                 ...p,
                 columna: v as ColumnaAjuste,
-                // Las marcas sólo tienen sentido en los haberes.
-                noRemunerativo: v === "haber" ? p.noRemunerativo : false,
-                sumaAlJornal: v === "haber" ? p.sumaAlJornal : false,
+                // La marca sólo tiene sentido en los haberes.
+                remunerativo: v === "haber" ? p.remunerativo : false,
               }))
             }
           >
@@ -122,36 +122,22 @@ export function TablaAjustes({
       </div>
 
       {esHaber ? (
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
-          <Label htmlFor="aj-jornal" className="cursor-pointer text-sm font-normal">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <Label htmlFor="aj-rem" className="cursor-pointer text-sm font-normal">
             <Checkbox
-              id="aj-jornal"
-              checked={borrador.sumaAlJornal && !borrador.noRemunerativo}
-              disabled={borrador.noRemunerativo}
+              id="aj-rem"
+              checked={borrador.remunerativo}
               onCheckedChange={(v) =>
-                setBorrador((p) => ({ ...p, sumaAlJornal: v === true }))
+                setBorrador((p) => ({ ...p, remunerativo: v === true }))
               }
             />
-            Suma al sueldo jornal
-          </Label>
-
-          <Label htmlFor="aj-norem" className="cursor-pointer text-sm font-normal">
-            <Checkbox
-              id="aj-norem"
-              checked={borrador.noRemunerativo}
-              onCheckedChange={(v) =>
-                setBorrador((p) => ({ ...p, noRemunerativo: v === true }))
-              }
-            />
-            No remunerativo
+            Remunerativo
           </Label>
 
           <p className="text-muted-foreground text-xs">
-            {borrador.noRemunerativo
-              ? "No paga aportes y no entra al valor hora."
-              : borrador.sumaAlJornal
-                ? "Paga aportes y levanta el valor hora."
-                : "Paga aportes pero no levanta el valor hora."}
+            {borrador.remunerativo
+              ? "Paga aportes y entra al valor hora."
+              : "No paga aportes y no entra al valor hora."}
           </p>
         </div>
       ) : null}
@@ -168,11 +154,9 @@ export function TablaAjustes({
                 <p className="text-muted-foreground text-xs">
                   {ajuste.columna === "haber" ? "Haber" : "Descuento"}
                   {ajuste.columna === "haber"
-                    ? ajuste.noRemunerativo
-                      ? " · no remunerativo"
-                      : ajuste.sumaAlJornal
-                        ? " · suma al jornal"
-                        : " · no suma al jornal"
+                    ? ajuste.remunerativo
+                      ? " · remunerativo"
+                      : " · no remunerativo"
                     : ""}
                 </p>
               </div>

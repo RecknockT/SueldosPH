@@ -348,8 +348,7 @@ describe("ajustes", () => {
     concepto: "Prueba",
     columna: "haber",
     monto: 100000,
-    noRemunerativo: false,
-    sumaAlJornal: true,
+    remunerativo: true,
     ...parcial,
   })
 
@@ -373,20 +372,15 @@ describe("ajustes", () => {
     casi(r.descuentos, r.bruto * (TOTAL_APORTES / 100))
   })
 
-  it("un haber que suma al jornal levanta el valor hora", () => {
-    const r = conAjustes([ajuste({ sumaAlJornal: true })])
+  it("un haber remunerativo levanta el valor hora", () => {
+    // Remunerativo y jornal son la misma cosa: no hay forma de pedir uno sin
+    // el otro, que era lo que dejaba la marca vieja.
+    const r = conAjustes([ajuste({ remunerativo: true })])
     casi(r.valorHora - base.valorHora, 100000 / 200)
   })
 
-  it("un haber remunerativo que no suma al jornal deja la hora quieta", () => {
-    const r = conAjustes([ajuste({ sumaAlJornal: false })])
-
-    casi(r.valorHora, base.valorHora)
-    casi(r.bruto, base.bruto + 100000)
-  })
-
   it("un haber no remunerativo va al neto sin pagar aportes", () => {
-    const r = conAjustes([ajuste({ noRemunerativo: true })])
+    const r = conAjustes([ajuste({ remunerativo: false })])
 
     casi(r.bruto, base.bruto)
     casi(r.descuentos, base.descuentos)
@@ -394,8 +388,8 @@ describe("ajustes", () => {
     casi(r.neto, base.neto + 100000)
   })
 
-  it("un no remunerativo nunca toca el valor hora, aunque se lo marque", () => {
-    const r = conAjustes([ajuste({ noRemunerativo: true, sumaAlJornal: true })])
+  it("un no remunerativo nunca toca el valor hora", () => {
+    const r = conAjustes([ajuste({ remunerativo: false })])
     casi(r.valorHora, base.valorHora)
   })
 
@@ -412,7 +406,7 @@ describe("ajustes", () => {
       ajuste({ id: "a", concepto: "Suma remunerativa", monto: 55000 }),
       ajuste({ id: "b", concepto: "Vacaciones", monto: 786118.84 }),
       ajuste({ id: "c", concepto: "Anticipo", columna: "descuento", monto: 200000 }),
-      ajuste({ id: "d", concepto: "Viático fijo", noRemunerativo: true, monto: 30000 }),
+      ajuste({ id: "d", concepto: "Viático fijo", remunerativo: false, monto: 30000 }),
     ])
 
     casi(r.bruto, base.bruto + 55000 + 786118.84)
@@ -431,7 +425,7 @@ describe("ajustes", () => {
   })
 
   it("marca los no remunerativos en el recibo", () => {
-    const r = conAjustes([ajuste({ concepto: "bono", noRemunerativo: true })])
+    const r = conAjustes([ajuste({ concepto: "bono", remunerativo: false })])
     const fila = r.haberes.find((f) => f.detalle === "BONO")
 
     assert.equal(fila?.unidad, "NO REM.")
