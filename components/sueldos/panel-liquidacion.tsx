@@ -497,7 +497,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
         </CardHeader>
 
         <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="emp-nombre" className="text-muted-foreground text-xs font-semibold">
               Nombre y apellido
             </Label>
@@ -510,7 +510,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="emp-cuil" className="text-muted-foreground text-xs font-semibold">
               CUIL
             </Label>
@@ -523,7 +523,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label
               htmlFor="emp-ingreso"
               className="text-muted-foreground text-xs font-semibold"
@@ -545,7 +545,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label
               htmlFor="emp-consorcio"
               className="text-muted-foreground text-xs font-semibold"
@@ -571,7 +571,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
+              <div className="flex flex-col gap-1.5">
                 <Label htmlFor="cargo" className="text-muted-foreground text-xs font-semibold">
                   Cargo
                 </Label>
@@ -589,7 +589,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
                 </Select>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="flex flex-col gap-1.5">
                 <span className="text-muted-foreground text-xs font-semibold">Categoría</span>
                 <ToggleGroup
                   type="single"
