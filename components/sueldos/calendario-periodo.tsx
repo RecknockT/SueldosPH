@@ -9,7 +9,10 @@ import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -17,18 +20,25 @@ import {
   NOMBRES_DIA,
   calendarioDe,
   explicarHoras,
+  resumenMes,
   type DiaSemana,
 } from "@/lib/calendario"
+import { diasFeriadosDelPeriodo, hayDatosDelPeriodo } from "@/lib/feriados"
 import { cn } from "@/lib/utils"
 
 const INICIALES = ["D", "L", "M", "M", "J", "V", "S"]
 
+/** Además de los siete días, se puede contar por feriado. */
+const FERIADOS = "feriados"
+type Seleccion = DiaSemana | typeof FERIADOS
+
 /**
- * Calendario del período con una calculadora de horas por día de la semana.
+ * Calendario del período con una calculadora de horas.
  *
- * Resuelve el caso concreto de "hace cuatro horas los sábados": en vez de
- * contar sábados en un almanaque y multiplicar a mano, se elige el día, se
- * cargan las horas y se suma al tramo que corresponda.
+ * Resuelve "hace cuatro horas los sábados": en vez de contar sábados en un
+ * almanaque y multiplicar a mano, se elige el día, se cargan las horas y se
+ * suma al tramo que corresponda. También sirve para los feriados, que salen de
+ * data/feriados.
  */
 export function CalendarioPeriodo({
   periodo,
@@ -37,27 +47,64 @@ export function CalendarioPeriodo({
   periodo: string
   onSumarHoras: (tramo: "horas50" | "horas100", horas: number) => void
 }) {
-  const [diaSemana, setDiaSemana] = useState<DiaSemana>(6)
+  const [seleccion, setSeleccion] = useState<Seleccion>(6)
   const [horasPorDia, setHorasPorDia] = useState<number | "">(0)
   const [tramo, setTramo] = useState<"horas50" | "horas100">("horas100")
 
   const calendario = useMemo(() => calendarioDe(periodo), [periodo])
+  const feriados = useMemo(() => diasFeriadosDelPeriodo(periodo), [periodo])
+  const hayFeriados = hayDatosDelPeriodo(periodo)
 
-  const cuenta = useMemo(
-    () => explicarHoras(periodo, diaSemana, horasPorDia === "" ? 0 : horasPorDia),
-    [periodo, diaSemana, horasPorDia]
+  const resumen = useMemo(
+    () => resumenMes(periodo, new Set(feriados.keys())),
+    [periodo, feriados]
   )
 
-  if (!calendario) return null
+  const cuenta = useMemo(() => {
+    const horas = horasPorDia === "" ? 0 : horasPorDia
+
+    if (seleccion === FERIADOS) {
+      const cantidad = feriados.size
+      return {
+        cantidad,
+        total: cantidad * Math.max(0, horas),
+        texto: `${cantidad} ${cantidad === 1 ? "feriado" : "feriados"} × ${horas} hs`,
+      }
+    }
+
+    return explicarHoras(periodo, seleccion, horas)
+  }, [periodo, seleccion, horasPorDia, feriados])
+
+  if (!calendario || !resumen) return null
+
+  const estaResaltado = (numero: number, diaSemana: DiaSemana) =>
+    seleccion === FERIADOS ? feriados.has(numero) : diaSemana === seleccion
 
   return (
     <div className="space-y-4">
+      <p className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-1 text-xs">
+        <span>
+          <span className="text-foreground font-semibold tabular">{resumen.habiles}</span>{" "}
+          hábiles
+        </span>
+        <span>
+          <span className="text-foreground font-semibold tabular">{resumen.sabados}</span>{" "}
+          sábados
+        </span>
+        <span>
+          <span className="text-foreground font-semibold tabular">{resumen.domingos}</span>{" "}
+          domingos
+        </span>
+        <span>
+          <span className="text-foreground font-semibold tabular">{resumen.feriados}</span>{" "}
+          {resumen.feriados === 1 ? "feriado" : "feriados"}
+        </span>
+      </p>
+
       <div>
         <div className="text-muted-foreground mb-2 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold">
           {INICIALES.map((inicial, i) => (
-            <span key={i} className={i === 0 || i === 6 ? "text-primary" : undefined}>
-              {inicial}
-            </span>
+            <span key={i}>{inicial}</span>
           ))}
         </div>
 
@@ -66,49 +113,90 @@ export function CalendarioPeriodo({
             <span key={`hueco-${i}`} />
           ))}
 
-          {calendario.dias.map((dia) => (
-            <span
-              key={dia.numero}
-              className={cn(
-                "tabular flex h-7 items-center justify-center rounded text-xs",
-                dia.diaSemana === diaSemana
-                  ? "bg-brand font-semibold text-white"
-                  : dia.esFinDeSemana
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground"
-              )}
-            >
-              {dia.numero}
-            </span>
-          ))}
+          {calendario.dias.map((dia) => {
+            const feriado = feriados.get(dia.numero)
+
+            return (
+              <span
+                key={dia.numero}
+                title={feriado?.nombre}
+                className={cn(
+                  "tabular relative flex h-7 items-center justify-center rounded text-xs",
+                  estaResaltado(dia.numero, dia.diaSemana)
+                    ? "bg-brand font-semibold text-white"
+                    : dia.esFinDeSemana
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground"
+                )}
+              >
+                {dia.numero}
+                {feriado ? (
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "absolute bottom-0.5 size-1 rounded-full",
+                      estaResaltado(dia.numero, dia.diaSemana)
+                        ? "bg-white"
+                        : "bg-primary"
+                    )}
+                  />
+                ) : null}
+              </span>
+            )
+          })}
         </div>
+
+        {feriados.size > 0 ? (
+          <ul className="text-muted-foreground mt-3 space-y-0.5 text-xs">
+            {[...feriados.entries()].map(([numero, feriado]) => (
+              <li key={numero}>
+                <span className="text-foreground tabular font-medium">{numero}</span>{" "}
+                {feriado.nombre}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {hayFeriados ? null : (
+          <p className="text-muted-foreground mt-3 text-xs">
+            No hay feriados cargados para ese año. Corré{" "}
+            <code className="bg-muted rounded px-1 py-0.5">npm run sync:feriados</code>.
+          </p>
+        )}
       </div>
 
       <div className="border-border space-y-3 border-t pt-3">
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label
-              htmlFor="cal-dia"
-              className="text-muted-foreground text-xs font-semibold"
-            >
-              Día de la semana
+            <Label htmlFor="cal-dia" className="text-muted-foreground text-xs font-semibold">
+              Contar por
             </Label>
             <Select
-              value={String(diaSemana)}
-              onValueChange={(v) => setDiaSemana(Number(v) as DiaSemana)}
+              value={String(seleccion)}
+              onValueChange={(v) =>
+                setSeleccion(v === FERIADOS ? FERIADOS : (Number(v) as DiaSemana))
+              }
             >
               <SelectTrigger id="cal-dia" className="h-9 w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {NOMBRES_DIA.map((nombre, i) => (
-                  <SelectItem key={nombre} value={String(i)}>
-                    <span className="capitalize">{nombre}</span>
-                    <span className="text-muted-foreground ml-1">
-                      ({calendario.porDiaSemana[i]})
-                    </span>
-                  </SelectItem>
-                ))}
+                <SelectGroup>
+                  <SelectLabel>Día de la semana</SelectLabel>
+                  {NOMBRES_DIA.map((nombre, i) => (
+                    <SelectItem key={nombre} value={String(i)}>
+                      <span className="capitalize">{nombre}</span>
+                      <span className="text-muted-foreground ml-1">
+                        ({calendario.porDiaSemana[i]})
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectItem value={FERIADOS}>
+                  Feriados
+                  <span className="text-muted-foreground ml-1">({feriados.size})</span>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>

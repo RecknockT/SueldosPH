@@ -6,6 +6,7 @@ import {
   calendarioDe,
   cuantosDias,
   explicarHoras,
+  resumenMes,
   type DiaSemana,
 } from "./calendario.ts"
 
@@ -105,5 +106,46 @@ describe("explicarHoras", () => {
 
   it("con cero horas da cero", () => {
     assert.equal(explicarHoras("Junio 2026", SABADO, 0).total, 0)
+  })
+})
+
+describe("resumenMes", () => {
+  /**
+   * Agosto 2026 arranca sábado y tiene 31 días. El único feriado es el 17.
+   * Estos números coinciden con los que muestra otro sistema de liquidación
+   * de propiedad horizontal para el mismo mes.
+   */
+  const AGOSTO = new Set([17])
+
+  it("cuenta hábiles, sábados, domingos y feriados", () => {
+    const r = resumenMes("Agosto 2026", AGOSTO)
+
+    assert.equal(r?.total, 31)
+    assert.equal(r?.sabados, 5)
+    assert.equal(r?.domingos, 5)
+    assert.equal(r?.feriados, 1)
+    assert.equal(r?.habiles, 20)
+  })
+
+  it("los hábiles son los días que no son finde ni feriado", () => {
+    const r = resumenMes("Agosto 2026", AGOSTO)!
+    assert.equal(r.habiles, r.total - r.sabados - r.domingos - r.feriados)
+  })
+
+  it("no descuenta dos veces un feriado que cae fin de semana", () => {
+    // El 1 de agosto de 2026 es sábado.
+    const r = resumenMes("Agosto 2026", new Set([1]))
+
+    assert.equal(r?.feriados, 1)
+    assert.equal(r?.habiles, 21)
+  })
+
+  it("sin feriados cargados los hábiles son todos los días de semana", () => {
+    const r = resumenMes("Agosto 2026", new Set())
+    assert.equal(r?.habiles, 21)
+  })
+
+  it("devuelve null si el período no se entiende", () => {
+    assert.equal(resumenMes("qué mes", new Set()), null)
   })
 })
