@@ -7,6 +7,7 @@ import type {
   EstadoAdicionales,
   EstadoAportes,
   Liquidacion,
+  TramoHoras,
 } from "./liquidacion"
 
 /** Fila de public.legajos. */
@@ -69,6 +70,8 @@ export type SnapshotLiquidacion = {
   aportes: EstadoAportes
   /** Líneas libres. Opcional: los recibos anteriores no las tienen. */
   ajustes?: Ajuste[]
+  /** Horas fijas con su origen. Opcional: los recibos anteriores no las tienen. */
+  horasFijas?: TramoHoras[]
   resultado: Liquidacion
   /**
    * Contribuciones patronales y costo total (Ley 27.802 / Dto. 407/2026).

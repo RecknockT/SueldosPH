@@ -41,7 +41,6 @@ import {
   SIN_HORAS_FIJAS,
   parsearHorasFijas,
   resolverHorasFijas,
-  totalHoras,
   type HoraFija,
   type HorasResueltas,
 } from "@/lib/horas-fijas"
@@ -67,6 +66,7 @@ import {
   type EstadoAdicionales,
   type EstadoAportes,
   type Entradas,
+  type TramoHoras,
 } from "@/lib/liquidacion"
 
 const SIN_LEGAJO = "__manual__"
@@ -122,15 +122,20 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
   )
 
   /**
-   * Lo que realmente se liquida.
+   * Las horas fijas van aparte de las entradas, no sumadas dentro.
    *
-   * Los campos de horas son del usuario y las horas fijas salen del legajo:
-   * viven separados y se suman recién acá. Si las fijas se escribieran dentro
-   * del campo, escribir en él las borraría.
+   * Así el campo sigue siendo del usuario —escribir en él no las borra— y el
+   * recibo puede imprimir "20 HS SÁBADOS" en vez de un total sin origen.
    */
-  const entradasFinales = useMemo<Entradas>(
-    () => ({ ...entradas, ...totalHoras(entradas, horasFijas) }),
-    [entradas, horasFijas]
+  const tramosFijos = useMemo<TramoHoras[]>(
+    () =>
+      horasFijas.detalle.map((linea) => ({
+        id: linea.id,
+        origen: linea.origen,
+        horas: linea.horas,
+        tramo: linea.tramo,
+      })),
+    [horasFijas]
   )
 
   const liquidacion = useMemo(
@@ -139,12 +144,13 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
         planilla,
         cargo,
         categoria,
-        entradas: entradasFinales,
+        entradas,
         adicionales,
         aportes,
         ajustes,
+        horasFijas: tramosFijos,
       }),
-    [planilla, cargo, categoria, entradasFinales, adicionales, aportes, ajustes]
+    [planilla, cargo, categoria, entradas, adicionales, aportes, ajustes, tramosFijos]
   )
 
   const costoLaboral = useMemo(
@@ -173,7 +179,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
         +<span className="text-foreground tabular font-medium">{fijas}</span> fijas del
         legajo ={" "}
         <span className="text-foreground tabular font-medium">
-          {entradasFinales[campo.key]}
+          {numero(entradas[campo.key]) + fijas}
         </span>{" "}
         hs
       </>
@@ -298,7 +304,8 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
         periodo: planillaKey,
         cargoId: cargo.id,
         categoria,
-        entradas: entradasFinales,
+        entradas,
+        horasFijas: tramosFijos,
         adicionales,
         aportes,
         ajustes,

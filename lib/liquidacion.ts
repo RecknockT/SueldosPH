@@ -184,6 +184,37 @@ export type Ajuste = {
 }
 
 /**
+ * Tramos de horas confiables a partir de lo que manda el cliente.
+ *
+ * Llegan al guardar la liquidación, así que se validan antes de recalcularla
+ * en el servidor: si no, cualquiera podría mandar horas negativas o un tramo
+ * inventado.
+ */
+export function parsearTramosHoras(valor: unknown): TramoHoras[] {
+  if (!Array.isArray(valor)) return []
+
+  const tramos: TramoHoras[] = []
+
+  for (const [i, item] of valor.entries()) {
+    if (typeof item !== "object" || item === null) continue
+
+    const { id, origen, horas, tramo } = item as Record<string, unknown>
+
+    const cantidad = Number(horas)
+    if (!Number.isFinite(cantidad) || cantidad <= 0) continue
+
+    tramos.push({
+      id: typeof id === "string" && id !== "" ? id : `tramo-${i}`,
+      origen: typeof origen === "string" ? origen.trim() : "",
+      horas: cantidad,
+      tramo: tramo === "horas50" ? "horas50" : "horas100",
+    })
+  }
+
+  return tramos
+}
+
+/**
  * Ajustes confiables a partir de algo que no lo es.
  *
  * Entra lo que devuelve la base y lo que manda el cliente al guardar: ninguno
@@ -264,6 +295,20 @@ export type Liquidacion = {
   deducciones: FilaRecibo[]
 }
 
+/**
+ * Horas que vienen de una regla del legajo, no del campo.
+ *
+ * Se pasan aparte de las entradas para que el recibo pueda decir de dónde
+ * salen: "20 hs los sábados" es verificable, "52 hs" no.
+ */
+export type TramoHoras = {
+  id: string
+  /** Cómo se nombra en el recibo: "sábados", "feriados". */
+  origen: string
+  horas: number
+  tramo: "horas50" | "horas100"
+}
+
 export type ParametrosLiquidacion = {
   planilla: Planilla
   cargo: Cargo | undefined
@@ -272,6 +317,8 @@ export type ParametrosLiquidacion = {
   adicionales: EstadoAdicionales
   aportes: EstadoAportes
   ajustes?: Ajuste[]
+  /** Horas fijas del legajo. Se suman a las del campo, con su propia línea. */
+  horasFijas?: TramoHoras[]
 }
 
 const num = (valor: number | "") => (valor === "" ? 0 : Number(valor) || 0)
@@ -340,11 +387,24 @@ export function calcularLiquidacion({
   adicionales,
   aportes,
   ajustes = [],
+  horasFijas = [],
 }: ParametrosLiquidacion): Liquidacion {
   const uf = num(entradas.uf)
   const anios = num(entradas.antiguedad)
-  const horas100 = num(entradas.horas100)
-  const horas50 = num(entradas.horas50)
+  // Las horas del campo y las que salen de las reglas del legajo se pagan
+  // igual; se cuentan aparte sólo para poder imprimirlas por separado.
+  const tramosFijos = horasFijas
+    .map((t) => ({ ...t, horas: Math.max(0, num(t.horas)) }))
+    .filter((t) => t.horas > 0)
+
+  const fijasDe = (tramo: "horas50" | "horas100") =>
+    tramosFijos.filter((t) => t.tramo === tramo).reduce((acc, t) => acc + t.horas, 0)
+
+  const horasManual100 = num(entradas.horas100)
+  const horasManual50 = num(entradas.horas50)
+
+  const horas100 = horasManual100 + fijasDe("horas100")
+  const horas50 = horasManual50 + fijasDe("horas50")
 
   const nombreCargo = cargo?.nombre ?? ""
   const tabla = planilla.adicionales
@@ -479,8 +539,44 @@ export function calcularLiquidacion({
   agregarHaber("movimientoAutos", "MOVIMIENTO AUTOS", "", movimientoAutos)
   agregarHaber("viaticos", "VIÁTICOS", "", viaticos)
   agregarHaber("limpiezaPileta", "LIMPIEZA PILETA Y MANT. DEL AGUA", "", limpiezaPileta)
-  agregarHaber("horas50", "HORAS EXTRAS AL 50%", `${horas50} HS`, montoHoras50)
-  agregarHaber("horas100", "HORAS EXTRAS AL 100%", `${horas100} HS`, montoHoras100)
+  /**
+   * Una línea por origen: las cargadas a mano y una por cada regla del legajo.
+   *
+   * El total pagado es el mismo, pero así el recibo dice "20 HS SÁBADOS" en
+   * vez de sumar todo en un número que no se puede rastrear.
+   */
+  const agregarHoras = (
+    id: string,
+    tramo: "horas50" | "horas100",
+    origen: string,
+    horas: number
+  ) => {
+    const recargo = tramo === "horas100" ? "100" : "50"
+    const multiplicador =
+      tramo === "horas100" ? MULTIPLICADOR_HORA_100 : MULTIPLICADOR_HORA_50
+
+    agregarHaber(
+      id,
+      origen
+        ? `HORAS EXTRAS ${origen.toUpperCase()} AL ${recargo}%`
+        : `HORAS EXTRAS AL ${recargo}%`,
+      `${horas} HS`,
+      horas * valorHora * multiplicador
+    )
+  }
+
+  for (const tramo of ["horas50", "horas100"] as const) {
+    agregarHoras(
+      tramo,
+      tramo,
+      "",
+      tramo === "horas50" ? horasManual50 : horasManual100
+    )
+
+    for (const fija of tramosFijos.filter((t) => t.tramo === tramo)) {
+      agregarHoras(`${tramo}-${fija.id}`, tramo, fija.origen, fija.horas)
+    }
+  }
   agregarHaber("vivienda", "VIVIENDA", "", vivienda)
   agregarHaber("titulo", "TÍTULO ENCARGADO INTEGRAL", "", tituloEncargado)
   agregarHaber(

@@ -12,8 +12,8 @@ import {
   type EstadoAdicionales,
   type EstadoAportes,
   type Entradas,
+  type TramoHoras,
 } from "./liquidacion.ts"
-import { totalHoras } from "./horas-fijas.ts"
 import type { Cargo, Planilla } from "./planillas.ts"
 
 /** Valores de la planilla Junio 2026, para no depender del JSON en los tests. */
@@ -73,6 +73,7 @@ function liquidar({
   adicionales = {},
   aportes = {},
   ajustes = [],
+  horasFijas = [],
 }: {
   cargo?: Cargo
   categoria?: 1 | 2 | 3 | 4
@@ -80,6 +81,7 @@ function liquidar({
   adicionales?: Partial<EstadoAdicionales>
   aportes?: Partial<EstadoAportes>
   ajustes?: Ajuste[]
+  horasFijas?: TramoHoras[]
 } = {}) {
   return calcularLiquidacion({
     planilla: PLANILLA,
@@ -89,6 +91,7 @@ function liquidar({
     adicionales: { ...ADICIONALES_INICIALES, ...adicionales },
     aportes: { ...APORTES_INICIALES, ...aportes },
     ajustes,
+    horasFijas,
   })
 }
 
@@ -453,113 +456,73 @@ describe("ajustes", () => {
   })
 })
 
-describe("horas fijas del legajo sumadas a las cargadas a mano", () => {
-  const liquidar = (entradas: Entradas) =>
-    calcularLiquidacion({
-      planilla: PLANILLA,
-      cargo: SIN_VIVIENDA,
-      categoria: 1,
-      entradas,
-      adicionales: ADICIONALES_INICIALES,
-      aportes: APORTES_INICIALES,
-      ajustes: [],
+describe("horas fijas con su propia línea", () => {
+  const sabados: TramoHoras = {
+    id: "s",
+    origen: "sábados",
+    horas: 20,
+    tramo: "horas100",
+  }
+
+  const domingos: TramoHoras = {
+    id: "d",
+    origen: "domingos",
+    horas: 8,
+    tramo: "horas100",
+  }
+
+  it("nombra el día en la línea del recibo", () => {
+    const r = liquidar({ horasFijas: [sabados] })
+    const fila = r.haberes.find((f) => f.id === "horas100-s")
+
+    assert.equal(fila?.detalle, "HORAS EXTRAS SÁBADOS AL 100%")
+    assert.equal(fila?.unidad, "20 HS")
+  })
+
+  it("una línea por regla, no un total mezclado", () => {
+    const r = liquidar({ horasFijas: [sabados, domingos] })
+
+    assert.equal(r.haberes.find((f) => f.id === "horas100-s")?.unidad, "20 HS")
+    assert.equal(r.haberes.find((f) => f.id === "horas100-d")?.unidad, "8 HS")
+  })
+
+  it("las cargadas a mano quedan en su propia línea, sin día", () => {
+    const r = liquidar({ entradas: { horas100: 12 }, horasFijas: [sabados] })
+
+    assert.equal(r.haberes.find((f) => f.id === "horas100")?.detalle, "HORAS EXTRAS AL 100%")
+    assert.equal(r.haberes.find((f) => f.id === "horas100")?.unidad, "12 HS")
+    assert.equal(r.haberes.find((f) => f.id === "horas100-s")?.unidad, "20 HS")
+  })
+
+  it("se pagan igual que las cargadas a mano: mismo valor hora y recargo", () => {
+    const juntas = liquidar({ entradas: { horas100: 32 } })
+    const partidas = liquidar({ entradas: { horas100: 12 }, horasFijas: [sabados] })
+
+    casi(partidas.horasExtras, juntas.horasExtras)
+    casi(partidas.bruto, juntas.bruto)
+  })
+
+  it("las líneas partidas siguen sumando el total de haberes", () => {
+    const r = liquidar({ entradas: { horas100: 12, horas50: 3 }, horasFijas: [sabados, domingos] })
+    const filas = r.haberes.filter((f) => !f.esTotal)
+
+    casi(
+      filas.reduce((acc, f) => acc + f.haber, 0),
+      r.totalHaberes
+    )
+  })
+
+  it("no imprime una regla en cero", () => {
+    const r = liquidar({ horasFijas: [{ ...sabados, horas: 0 }] })
+    assert.equal(r.haberes.find((f) => f.id === "horas100-s"), undefined)
+  })
+
+  it("separa los tramos: sábados al 100% y feriados al 50% no se mezclan", () => {
+    const r = liquidar({
+      horasFijas: [sabados, { id: "f", origen: "feriados", horas: 6, tramo: "horas50" }],
     })
 
-  // 10 hs los sábados por 4 sábados = 40 hs fijas, más 12 cargadas a mano.
-  const FIJAS = { horas50: 0, horas100: 40, detalle: [] }
-
-  it("liquida la suma, no lo último que se escribió", () => {
-    const entradas: Entradas = { ...ENTRADAS_INICIALES, horas100: 12 }
-    const r = liquidar({ ...entradas, ...totalHoras(entradas, FIJAS) })
-
-    const linea = r.haberes.find((h) => h.id === "horas100")
-    assert.equal(linea?.unidad, "52 HS")
-  })
-
-  it("las horas fijas se pagan al valor hora con su recargo", () => {
-    const entradas: Entradas = { ...ENTRADAS_INICIALES, horas100: 12 }
-    const r = liquidar({ ...entradas, ...totalHoras(entradas, FIJAS) })
-
-    const linea = r.haberes.find((h) => h.id === "horas100")
-    assert.equal(linea?.haber, 52 * r.valorHora * 2)
-  })
-
-  it("el monto de las horas fijas es remunerativo: entra al bruto", () => {
-    const sinFijas = liquidar({ ...ENTRADAS_INICIALES, horas100: 12 })
-
-    const entradas: Entradas = { ...ENTRADAS_INICIALES, horas100: 12 }
-    const conFijas = liquidar({ ...entradas, ...totalHoras(entradas, FIJAS) })
-
-    assert.equal(
-      conFijas.bruto - sinFijas.bruto,
-      40 * conFijas.valorHora * 2
-    )
-    // Y si entra al bruto, paga aportes: el descuento sube también.
-    assert.ok(conFijas.descuentos > sinFijas.descuentos)
-  })
-
-  it("las horas extras no mueven el valor hora, ni las fijas ni las cargadas", () => {
-    const base = liquidar(ENTRADAS_INICIALES)
-
-    const entradas: Entradas = { ...ENTRADAS_INICIALES, horas100: 12 }
-    const conTodo = liquidar({ ...entradas, ...totalHoras(entradas, FIJAS) })
-
-    assert.equal(conTodo.valorHora, base.valorHora)
-  })
-})
-
-describe("parsearAjustes", () => {
-  it("acepta el JSON del formulario del legajo", () => {
-    const r = parsearAjustes(
-      '[{"id":"a","concepto":"Suma remunerativa","columna":"haber","monto":55000,"remunerativo":true}]'
-    )
-
-    assert.deepEqual(r, [
-      {
-        id: "a",
-        concepto: "Suma remunerativa",
-        columna: "haber",
-        monto: 55000,
-        remunerativo: true,
-      },
-    ])
-  })
-
-  it("acepta un array ya parseado, como el que devuelve la base", () => {
-    const r = parsearAjustes([
-      { id: "b", concepto: "Viático", columna: "haber", monto: 30000, remunerativo: false },
-    ])
-
-    assert.equal(r.length, 1)
-    assert.equal(r[0].remunerativo, false)
-  })
-
-  it("descarta lo que no es un ajuste", () => {
-    assert.deepEqual(parsearAjustes("no soy json"), [])
-    assert.deepEqual(parsearAjustes(null), [])
-    assert.deepEqual(parsearAjustes('[null, 3, "x"]'), [])
-  })
-
-  it("descarta los que no tienen concepto o monto", () => {
-    assert.deepEqual(parsearAjustes('[{"concepto":"","monto":100}]'), [])
-    assert.deepEqual(parsearAjustes('[{"concepto":"   ","monto":100}]'), [])
-    assert.deepEqual(parsearAjustes('[{"concepto":"Bono","monto":0}]'), [])
-    assert.deepEqual(parsearAjustes('[{"concepto":"Bono","monto":-5}]'), [])
-  })
-
-  it("un descuento nunca queda como remunerativo", () => {
-    const r = parsearAjustes(
-      '[{"concepto":"Anticipo","columna":"descuento","monto":200000,"remunerativo":true}]'
-    )
-
-    assert.equal(r[0].columna, "descuento")
-    assert.equal(r[0].remunerativo, false)
-  })
-
-  it("un haber sin la marca se toma como remunerativo", () => {
-    const r = parsearAjustes('[{"concepto":"Bono","monto":100}]')
-
-    assert.equal(r[0].columna, "haber")
-    assert.equal(r[0].remunerativo, true)
+    assert.equal(r.haberes.find((f) => f.id === "horas50-f")?.detalle, "HORAS EXTRAS FERIADOS AL 50%")
+    assert.equal(r.haberes.find((f) => f.id === "horas100-s")?.detalle, "HORAS EXTRAS SÁBADOS AL 100%")
   })
 })

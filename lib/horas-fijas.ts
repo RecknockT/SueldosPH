@@ -52,7 +52,15 @@ export type HorasResueltas = {
   horas50: number
   horas100: number
   /** Una línea por regla, para poder mostrar de dónde sale cada total. */
-  detalle: { id: string; texto: string; horas: number; tramo: "horas50" | "horas100" }[]
+  detalle: {
+    id: string
+    /** "5 sábados × 4 hs", para explicarlo en pantalla. */
+    texto: string
+    /** "sábados", para nombrar la línea del recibo. */
+    origen: string
+    horas: number
+    tramo: "horas50" | "horas100"
+  }[]
 }
 
 /**
@@ -78,9 +86,12 @@ export function resolverHorasFijas(
 
     resultado[regla.tramo] += total
 
+    const origen = nombreDiaPlural(regla.dia, veces)
+
     resultado.detalle.push({
       id: regla.id,
-      texto: `${veces} ${nombreDiaPlural(regla.dia, veces)} × ${horas} hs`,
+      texto: `${veces} ${origen} × ${horas} hs`,
+      origen,
       horas: total,
       tramo: regla.tramo,
     })
@@ -140,27 +151,3 @@ function intentarJSON(texto: string): unknown {
 
 /** Nada cargado: el estado inicial del panel y el de un legajo sin reglas. */
 export const SIN_HORAS_FIJAS: HorasResueltas = { horas50: 0, horas100: 0, detalle: [] }
-
-/** Lo que se cargó a mano en los campos de horas extras. */
-export type HorasCargadas = { horas50: number | ""; horas100: number | "" }
-
-/**
- * Junta las horas cargadas a mano con las fijas del legajo.
- *
- * Son independientes a propósito: el campo es del usuario y las fijas salen
- * del legajo, así que escribir en el campo no puede borrarlas. Se suman recién
- * acá, al liquidar. Una vez sumadas son horas extras como cualquier otra: se
- * pagan al valor hora con su recargo y el monto es remunerativo.
- */
-export function totalHoras(
-  cargadas: HorasCargadas,
-  fijas: HorasResueltas
-): { horas50: number; horas100: number } {
-  const cargada = (valor: number | "") =>
-    valor === "" || !Number.isFinite(Number(valor)) ? 0 : Math.max(0, Number(valor))
-
-  return {
-    horas50: cargada(cargadas.horas50) + fijas.horas50,
-    horas100: cargada(cargadas.horas100) + fijas.horas100,
-  }
-}
