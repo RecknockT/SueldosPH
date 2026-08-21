@@ -27,7 +27,7 @@ export function CampoNumero({ id, label, ayuda, value, onChange }: Props) {
   const handleMouseUp = (event: MouseEvent<HTMLInputElement>) => event.preventDefault()
 
   return (
-    <div className="space-y-1.5">
+    <div className="flex flex-col gap-1.5">
       <Label htmlFor={id} className="text-muted-foreground text-xs font-semibold">
         {label}
       </Label>

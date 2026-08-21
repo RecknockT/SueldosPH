@@ -183,7 +183,7 @@ export function CalendarioPeriodo({
 
       <div className="border-border space-y-3 border-t pt-3">
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="cal-dia" className="text-muted-foreground text-xs font-semibold">
               Contar por
             </Label>
@@ -217,7 +217,7 @@ export function CalendarioPeriodo({
             </Select>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label
               htmlFor="cal-horas"
               className="text-muted-foreground text-xs font-semibold"

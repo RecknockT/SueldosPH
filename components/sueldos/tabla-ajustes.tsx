@@ -54,7 +54,7 @@ export function TablaAjustes({
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-[1fr_140px_150px_auto] sm:items-end">
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="aj-concepto" className="text-muted-foreground text-xs font-semibold">
             Concepto
           </Label>
@@ -73,7 +73,7 @@ export function TablaAjustes({
           />
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="aj-columna" className="text-muted-foreground text-xs font-semibold">
             Columna
           </Label>
@@ -98,7 +98,7 @@ export function TablaAjustes({
           </Select>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="aj-monto" className="text-muted-foreground text-xs font-semibold">
             Monto
           </Label>

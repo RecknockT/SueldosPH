@@ -66,7 +66,7 @@ export function TablaHorasFijas({ iniciales }: { iniciales: HoraFija[] }) {
       <input type="hidden" name="horas_fijas" value={JSON.stringify(reglas)} />
 
       <div className="grid gap-3 sm:grid-cols-[1fr_110px_130px_auto] sm:items-end">
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="hf-dia" className="text-muted-foreground text-xs font-semibold">
             Día
           </Label>
@@ -97,7 +97,7 @@ export function TablaHorasFijas({ iniciales }: { iniciales: HoraFija[] }) {
           </Select>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="hf-horas" className="text-muted-foreground text-xs font-semibold">
             Horas
           </Label>
@@ -115,7 +115,7 @@ export function TablaHorasFijas({ iniciales }: { iniciales: HoraFija[] }) {
           />
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="hf-tramo" className="text-muted-foreground text-xs font-semibold">
             Recargo
           </Label>
