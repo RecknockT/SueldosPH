@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { InputNumero } from "@/components/input-numero"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -229,62 +230,52 @@ export function DialogoLegajo({
             </p>
             <div className="grid gap-4 sm:grid-cols-3">
               <Campo id="art_alicuota" label="ART · alícuota (%)">
-                <Input
+                <InputNumero
                   id="art_alicuota"
                   name="art_alicuota"
-                  type="number"
                   min={0}
                   step="any"
                   defaultValue={legajo?.art_alicuota ?? 4.71}
-                  className="tabular"
                 />
               </Campo>
 
               <Campo id="art_monto_fijo" label="ART · monto fijo">
-                <Input
+                <InputNumero
                   id="art_monto_fijo"
                   name="art_monto_fijo"
-                  type="number"
                   min={0}
                   step="any"
                   defaultValue={legajo?.art_monto_fijo ?? 1765}
-                  className="tabular"
                 />
               </Campo>
 
               <Campo id="seguro_vida" label="Seguro de vida obligatorio">
-                <Input
+                <InputNumero
                   id="seguro_vida"
                   name="seguro_vida"
-                  type="number"
                   min={0}
                   step="any"
                   defaultValue={legajo?.seguro_vida ?? 424.62}
-                  className="tabular"
                 />
               </Campo>
 
               <Campo id="detraccion" label="Detracción Dto. 814/01">
-                <Input
+                <InputNumero
                   id="detraccion"
                   name="detraccion"
-                  type="number"
                   min={0}
                   step="any"
                   defaultValue={legajo?.detraccion ?? 7003.68}
-                  className="tabular"
                 />
               </Campo>
 
               <Campo id="contribucion_solidaria" label="Contribución solidaria">
-                <Input
+                <InputNumero
                   id="contribucion_solidaria"
                   name="contribucion_solidaria"
-                  type="number"
                   min={0}
                   step="any"
                   defaultValue={legajo?.contribucion_solidaria ?? 0}
-                  className="tabular"
                 />
               </Campo>
             </div>
@@ -303,38 +294,32 @@ export function DialogoLegajo({
             <p className="mb-3 text-sm font-semibold">Valores habituales</p>
             <div className="grid gap-4 sm:grid-cols-3">
               <Campo id="uf" label="UF del edificio">
-                <Input
+                <InputNumero
                   id="uf"
                   name="uf"
-                  type="number"
                   min={0}
                   step="any"
                   defaultValue={legajo?.uf ?? 0}
-                  className="tabular"
                 />
               </Campo>
 
               <Campo id="adic_rem" label="Adic. remunerativo">
-                <Input
+                <InputNumero
                   id="adic_rem"
                   name="adic_rem"
-                  type="number"
                   min={0}
                   step="any"
                   defaultValue={legajo?.adic_rem ?? 0}
-                  className="tabular"
                 />
               </Campo>
 
               <Campo id="adic_no_rem" label="Adic. no remunerativo">
-                <Input
+                <InputNumero
                   id="adic_no_rem"
                   name="adic_no_rem"
-                  type="number"
                   min={0}
                   step="any"
                   defaultValue={legajo?.adic_no_rem ?? 0}
-                  className="tabular"
                 />
               </Campo>
             </div>

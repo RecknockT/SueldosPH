@@ -25,6 +25,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
+import { CalendarioPeriodo, TituloCalendario } from "./calendario-periodo"
 import { CampoNumero } from "./campo-numero"
 import { DialogRecibo } from "./dialog-recibo"
 
@@ -116,6 +117,12 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
 
   const setEntrada = (key: ClaveEntrada) => (valor: number | "") =>
     setEntradas((prev) => ({ ...prev, [key]: valor }))
+
+  /** Suma al tramo lo que calculó el calendario, sin pisar lo ya cargado. */
+  const sumarHoras = (tramo: "horas50" | "horas100", horas: number) => {
+    setEntradas((prev) => ({ ...prev, [tramo]: numero(prev[tramo]) + horas }))
+    toast.success(`${horas} hs sumadas a horas al ${tramo === "horas50" ? "50" : "100"}%`)
+  }
 
   const setDato = (key: keyof Empleado) => (valor: string) =>
     setEmpleado((prev) => ({ ...prev, [key]: valor }))
@@ -568,6 +575,17 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
           </CardContent>
         </Card>
       </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <TituloCalendario periodo={planillaKey} />
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CalendarioPeriodo periodo={planillaKey} onSumarHoras={sumarHoras} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="flex flex-wrap items-center justify-between gap-3">

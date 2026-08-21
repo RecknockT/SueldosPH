@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "node --test \"lib/**/*.test.ts\" \"scripts/**/*.test.ts\"",
-    "sync:planillas": "node scripts/sync-planillas.ts"
+    "sync:planillas": "node scripts/sync-planillas.ts",
+    "sync:feriados": "node scripts/sync-feriados.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

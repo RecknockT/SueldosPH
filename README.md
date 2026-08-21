@@ -25,6 +25,7 @@ Sin el primero la app liquida igual, pero no guarda nada y avisa en pantalla.
 | `npm run lint` | ESLint |
 | `npm test` | Tests del cálculo y del parser de planillas (`node --test`) |
 | `npm run sync:planillas` | Baja las escalas salariales de SUTERH |
+| `npm run sync:feriados` | Baja los feriados nacionales |
 
 ## Variables de entorno
 
@@ -151,6 +152,21 @@ Dos decisiones que conviene conocer:
   manda el navegador: vuelve a llamar a `calcularLiquidacion` con los mismos
   datos de entrada, así lo que queda emitido siempre es lo que produce el motor
   de cálculo.
+
+## Feriados
+
+Se sincronizan con `npm run sync:feriados` y quedan en `data/feriados`, un JSON
+por año.
+
+La fuente oficial es [argentina.gob.ar/feriados](https://www.argentina.gob.ar/feriados),
+pero publica la lista sólo como HTML armado con JavaScript, así que no se puede
+leer desde un script. Se usa `api.argentinadatos.com`, que expone lo mismo en
+JSON. La equivalencia está verificada: para 2026, las 19 fechas que cuentan como
+feriado en la página oficial —inamovibles, trasladables y turísticos— son
+exactamente las 19 que devuelve la API, con los mismos tipos.
+
+Los "días no laborables" religiosos quedan afuera a propósito: son optativos
+para el empleador y, si se trabajan, se pagan como día normal.
 
 ## Contribuciones patronales
 

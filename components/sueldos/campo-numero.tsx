@@ -2,7 +2,7 @@
 
 import type { ChangeEvent, FocusEvent, MouseEvent } from "react"
 
-import { Input } from "@/components/ui/input"
+import { InputNumero } from "@/components/input-numero"
 import { Label } from "@/components/ui/label"
 
 type Props = {
@@ -31,17 +31,15 @@ export function CampoNumero({ id, label, ayuda, value, onChange }: Props) {
       <Label htmlFor={id} className="text-muted-foreground text-xs font-semibold">
         {label}
       </Label>
-      <Input
+      <InputNumero
         id={id}
-        type="number"
-        inputMode="decimal"
         min={0}
         step="any"
         value={value}
         onChange={handleChange}
         onFocus={handleFocus}
         onMouseUp={handleMouseUp}
-        className="tabular h-9"
+        className="h-9"
       />
       <p className="text-muted-foreground/60 text-[11px] leading-tight">{ayuda}</p>
     </div>
