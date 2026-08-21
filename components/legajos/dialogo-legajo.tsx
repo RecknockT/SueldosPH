@@ -203,7 +203,7 @@ export function DialogoLegajo({
 
           <Separator />
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Campo id="consorcio_nombre" label="Consorcio (empleador)">
               <Input
                 id="consorcio_nombre"
@@ -222,23 +222,16 @@ export function DialogoLegajo({
                 className="tabular"
               />
             </Campo>
-          </div>
 
-          <Separator />
-
-          <div>
-            <p className="mb-3 text-sm font-semibold">Valores habituales</p>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Campo id="uf" label="UF del edificio">
-                <InputNumero
-                  id="uf"
-                  name="uf"
-                  min={0}
-                  step="any"
-                  defaultValue={legajo?.uf ?? 0}
-                />
-              </Campo>
-            </div>
+            <Campo id="uf" label="UF del edificio">
+              <InputNumero
+                id="uf"
+                name="uf"
+                min={0}
+                step="any"
+                defaultValue={legajo?.uf ?? 0}
+              />
+            </Campo>
           </div>
 
           <Separator />
