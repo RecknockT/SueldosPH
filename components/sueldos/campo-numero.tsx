@@ -1,6 +1,6 @@
 "use client"
 
-import type { ChangeEvent, FocusEvent, MouseEvent } from "react"
+import type { ChangeEvent, FocusEvent, MouseEvent, ReactNode } from "react"
 
 import { InputNumero } from "@/components/input-numero"
 import { Label } from "@/components/ui/label"
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 type Props = {
   id: string
   label: string
-  ayuda: string
+  ayuda: ReactNode
   value: number | ""
   onChange: (valor: number | "") => void
 }

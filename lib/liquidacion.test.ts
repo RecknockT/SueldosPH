@@ -12,6 +12,7 @@ import {
   type EstadoAportes,
   type Entradas,
 } from "./liquidacion.ts"
+import { totalHoras } from "./horas-fijas.ts"
 import type { Cargo, Planilla } from "./planillas.ts"
 
 /** Valores de la planilla Junio 2026, para no depender del JSON en los tests. */
@@ -459,5 +460,60 @@ describe("ajustes", () => {
 
     casi(sumaHaberes, r.bruto)
     casi(sumaDescuentos, r.descuentos)
+  })
+})
+
+describe("horas fijas del legajo sumadas a las cargadas a mano", () => {
+  const liquidar = (entradas: Entradas) =>
+    calcularLiquidacion({
+      planilla: PLANILLA,
+      cargo: SIN_VIVIENDA,
+      categoria: 1,
+      entradas,
+      adicionales: ADICIONALES_INICIALES,
+      aportes: APORTES_INICIALES,
+      ajustes: [],
+    })
+
+  // 10 hs los sábados por 4 sábados = 40 hs fijas, más 12 cargadas a mano.
+  const FIJAS = { horas50: 0, horas100: 40, detalle: [] }
+
+  it("liquida la suma, no lo último que se escribió", () => {
+    const entradas: Entradas = { ...ENTRADAS_INICIALES, horas100: 12 }
+    const r = liquidar({ ...entradas, ...totalHoras(entradas, FIJAS) })
+
+    const linea = r.haberes.find((h) => h.id === "horas100")
+    assert.equal(linea?.unidad, "52 HS")
+  })
+
+  it("las horas fijas se pagan al valor hora con su recargo", () => {
+    const entradas: Entradas = { ...ENTRADAS_INICIALES, horas100: 12 }
+    const r = liquidar({ ...entradas, ...totalHoras(entradas, FIJAS) })
+
+    const linea = r.haberes.find((h) => h.id === "horas100")
+    assert.equal(linea?.haber, 52 * r.valorHora * 2)
+  })
+
+  it("el monto de las horas fijas es remunerativo: entra al bruto", () => {
+    const sinFijas = liquidar({ ...ENTRADAS_INICIALES, horas100: 12 })
+
+    const entradas: Entradas = { ...ENTRADAS_INICIALES, horas100: 12 }
+    const conFijas = liquidar({ ...entradas, ...totalHoras(entradas, FIJAS) })
+
+    assert.equal(
+      conFijas.bruto - sinFijas.bruto,
+      40 * conFijas.valorHora * 2
+    )
+    // Y si entra al bruto, paga aportes: el descuento sube también.
+    assert.ok(conFijas.descuentos > sinFijas.descuentos)
+  })
+
+  it("las horas extras no mueven el valor hora, ni las fijas ni las cargadas", () => {
+    const base = liquidar(ENTRADAS_INICIALES)
+
+    const entradas: Entradas = { ...ENTRADAS_INICIALES, horas100: 12 }
+    const conTodo = liquidar({ ...entradas, ...totalHoras(entradas, FIJAS) })
+
+    assert.equal(conTodo.valorHora, base.valorHora)
   })
 })

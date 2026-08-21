@@ -41,6 +41,7 @@ import {
   SIN_HORAS_FIJAS,
   parsearHorasFijas,
   resolverHorasFijas,
+  totalHoras,
   type HoraFija,
   type HorasResueltas,
 } from "@/lib/horas-fijas"
@@ -119,16 +120,64 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
     [planilla, cargoId]
   )
 
+  /**
+   * Lo que realmente se liquida.
+   *
+   * Los campos de horas son del usuario y las horas fijas salen del legajo:
+   * viven separados y se suman recién acá. Si las fijas se escribieran dentro
+   * del campo, escribir en él las borraría.
+   */
+  const entradasFinales = useMemo<Entradas>(
+    () => ({ ...entradas, ...totalHoras(entradas, horasFijas) }),
+    [entradas, horasFijas]
+  )
+
   const liquidacion = useMemo(
     () =>
-      calcularLiquidacion({ planilla, cargo, categoria, entradas, adicionales, aportes, ajustes }),
-    [planilla, cargo, categoria, entradas, adicionales, aportes, ajustes]
+      calcularLiquidacion({
+        planilla,
+        cargo,
+        categoria,
+        entradas: entradasFinales,
+        adicionales,
+        aportes,
+        ajustes,
+      }),
+    [planilla, cargo, categoria, entradasFinales, adicionales, aportes, ajustes]
   )
 
   const costoLaboral = useMemo(
     () => calcularCostoLaboral(liquidacion.bruto, configCosto, liquidacion.noRemunerativo),
     [liquidacion.bruto, liquidacion.noRemunerativo, configCosto]
   )
+
+  /**
+   * La ayuda del campo dice qué se le suma.
+   *
+   * Sin esto el total que se liquida no coincide con lo que muestra el input y
+   * la diferencia queda invisible.
+   */
+  const ayudaDeEntrada = (campo: (typeof CAMPOS_ENTRADA)[number]) => {
+    if (campo.key === "antiguedad" && empleado.fechaIngreso) {
+      return "Calculada desde la fecha de ingreso"
+    }
+
+    if (campo.key !== "horas50" && campo.key !== "horas100") return campo.ayuda
+
+    const fijas = horasFijas[campo.key]
+    if (fijas <= 0) return campo.ayuda
+
+    return (
+      <>
+        +<span className="text-foreground tabular font-medium">{fijas}</span> fijas del
+        legajo ={" "}
+        <span className="text-foreground tabular font-medium">
+          {entradasFinales[campo.key]}
+        </span>{" "}
+        hs
+      </>
+    )
+  }
 
   const setEntrada = (key: ClaveEntrada) => (valor: number | "") =>
     setEntradas((prev) => ({ ...prev, [key]: valor }))
@@ -172,20 +221,18 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
       consorcioNombre: legajo.consorcio_nombre ?? "",
       consorcioCuit: legajo.consorcio_cuit ?? "",
     })
-    // Las horas fijas del legajo ya resueltas contra el calendario del período.
+    // Las horas fijas del legajo, resueltas contra el calendario del período.
+    // Van aparte de las entradas: se suman al liquidar, no se cargan al campo.
     const reglas = parsearHorasFijas(legajo.horas_fijas)
-    const resueltas = resolverEnPeriodo(reglas, planillaKey)
 
     setReglasFijas(reglas)
-    setHorasFijas(resueltas)
+    setHorasFijas(resolverEnPeriodo(reglas, planillaKey))
 
     setEntradas({
       ...ENTRADAS_INICIALES,
       uf: legajo.uf,
       adicRem: legajo.adic_rem,
       adicNoRem: legajo.adic_no_rem,
-      horas50: resueltas.horas50,
-      horas100: resueltas.horas100,
       // La antigüedad sale de la fecha de ingreso, no se carga a mano.
       antiguedad: aniosDeAntiguedad(legajo.fecha_ingreso, planillaKey),
     })
@@ -208,26 +255,16 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
 
     if (legajoId === SIN_LEGAJO) return
 
-    // La antigüedad y las horas fijas dependen del período. Las horas se
-    // reemplazan por diferencia —sale lo del mes viejo, entra lo del nuevo—
-    // para no borrar las que el usuario haya sumado a mano.
-    const resueltas = resolverEnPeriodo(reglasFijas, valor)
-    setHorasFijas(resueltas)
+    // La antigüedad y las horas fijas dependen del período. Las horas fijas
+    // se recalculan solas; el campo de horas no se toca, es del usuario.
+    setHorasFijas(resolverEnPeriodo(reglasFijas, valor))
 
-    setEntradas((prev) => ({
-      ...prev,
-      antiguedad: empleado.fechaIngreso
-        ? aniosDeAntiguedad(empleado.fechaIngreso, valor)
-        : prev.antiguedad,
-      horas50: Math.max(
-        0,
-        numero(prev.horas50) - horasFijas.horas50 + resueltas.horas50
-      ),
-      horas100: Math.max(
-        0,
-        numero(prev.horas100) - horasFijas.horas100 + resueltas.horas100
-      ),
-    }))
+    if (empleado.fechaIngreso) {
+      setEntradas((prev) => ({
+        ...prev,
+        antiguedad: aniosDeAntiguedad(empleado.fechaIngreso, valor),
+      }))
+    }
   }
 
   const reiniciar = () => {
@@ -257,7 +294,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
         periodo: planillaKey,
         cargoId: cargo.id,
         categoria,
-        entradas,
+        entradas: entradasFinales,
         adicionales,
         aportes,
         ajustes,
@@ -563,11 +600,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
                   key={campo.key}
                   id={`campo-${campo.key}`}
                   label={campo.label}
-                  ayuda={
-                    campo.key === "antiguedad" && empleado.fechaIngreso
-                      ? "Calculada desde la fecha de ingreso"
-                      : campo.ayuda
-                  }
+                  ayuda={ayudaDeEntrada(campo)}
                   value={entradas[campo.key]}
                   onChange={setEntrada(campo.key)}
                 />
@@ -655,7 +688,8 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
                 ))}
               </ul>
               <p className="text-muted-foreground mt-1.5 text-xs">
-                Ya están cargadas arriba. Se recalculan al cambiar de período.
+                Se suman a lo que cargues en Horas al 50% y al 100%, y se
+                recalculan al cambiar de período.
               </p>
             </div>
           ) : null}

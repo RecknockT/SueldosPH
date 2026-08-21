@@ -3,6 +3,8 @@ import { describe, it } from "node:test"
 
 import {
   FERIADOS,
+  SIN_HORAS_FIJAS,
+  totalHoras,
   parsearHorasFijas,
   resolverHorasFijas,
   vecesEnElPeriodo,
@@ -132,5 +134,45 @@ describe("parsearHorasFijas", () => {
     assert.equal(reglas.length, 1)
     assert.equal(reglas[0].tramo, "horas100")
     assert.notEqual(reglas[0].id, "")
+  })
+})
+
+describe("totalHoras", () => {
+  const fijas = (horas50: number, horas100: number) => ({ horas50, horas100, detalle: [] })
+
+  it("suma lo cargado a mano y lo fijo, sin pisar nada", () => {
+    // El caso que estaba mal: 40 hs fijas y 12 cargadas daban 12, no 52.
+    assert.deepEqual(totalHoras({ horas50: 0, horas100: 12 }, fijas(0, 40)), {
+      horas50: 0,
+      horas100: 52,
+    })
+  })
+
+  it("mantiene los tramos separados", () => {
+    assert.deepEqual(totalHoras({ horas50: 3, horas100: 5 }, fijas(10, 20)), {
+      horas50: 13,
+      horas100: 25,
+    })
+  })
+
+  it("un campo vacío es cero, no rompe la suma", () => {
+    assert.deepEqual(totalHoras({ horas50: "", horas100: "" }, fijas(8, 0)), {
+      horas50: 8,
+      horas100: 0,
+    })
+  })
+
+  it("sin horas fijas devuelve lo cargado", () => {
+    assert.deepEqual(totalHoras({ horas50: 4, horas100: 6 }, SIN_HORAS_FIJAS), {
+      horas50: 4,
+      horas100: 6,
+    })
+  })
+
+  it("ignora valores negativos", () => {
+    assert.deepEqual(totalHoras({ horas50: -5, horas100: 2 }, fijas(0, 0)), {
+      horas50: 0,
+      horas100: 2,
+    })
   })
 })
