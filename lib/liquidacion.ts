@@ -32,7 +32,9 @@ export type ClaveAdicional =
   | "limpiezaCochera"
   | "movimientoAutos"
   | "viaticos"
+  | "limpiezaPileta"
   | "tituloEncargadoIntegral"
+  | "zonaDesfavorable"
 
 export type ClaveAporte =
   | "jubilacion"
@@ -73,7 +75,9 @@ export const ADICIONALES_INICIALES: EstadoAdicionales = {
   limpiezaCochera: false,
   movimientoAutos: false,
   viaticos: false,
+  limpiezaPileta: false,
   tituloEncargadoIntegral: false,
+  zonaDesfavorable: false,
 }
 
 export const APORTES_INICIALES: EstadoAportes = {
@@ -119,9 +123,19 @@ export const CAMPOS_ADICIONAL: {
   { key: "movimientoAutos", label: "Movimiento de autos", detalle: "MOVIMIENTO AUTOS" },
   { key: "viaticos", label: "Viáticos", detalle: "VIÁTICOS" },
   {
+    key: "limpiezaPileta",
+    label: "Limpieza de pileta",
+    detalle: "LIMPIEZA PILETA Y MANT. DEL AGUA",
+  },
+  {
     key: "tituloEncargadoIntegral",
     label: "Título Encargado Integral",
     detalle: "TÍTULO ENCARGADO INTEGRAL",
+  },
+  {
+    key: "zonaDesfavorable",
+    label: "Zona desfavorable",
+    detalle: "PLUS ZONA DESFAVORABLE",
   },
 ]
 
@@ -245,6 +259,11 @@ export function montoAdicionalDe(
       return tabla.movimientoCoches
     case "viaticos":
       return tabla.viaticos
+    case "limpiezaPileta":
+      return tabla.limpiezaPileta
+    case "zonaDesfavorable":
+      // Depende del resto de la liquidación, no de un valor de tabla.
+      return 0
     case "tituloEncargadoIntegral":
       return sueldoBasico * (tabla.tituloEncargadoIntegral / 100)
   }
@@ -289,17 +308,30 @@ export function calcularLiquidacion({
   const limpiezaCochera = adicionales.limpiezaCochera ? tabla.limpiezaCocheras : 0
   const movimientoAutos = adicionales.movimientoAutos ? tabla.movimientoCoches : 0
   const viaticos = adicionales.viaticos ? tabla.viaticos : 0
+  const limpiezaPileta = adicionales.limpiezaPileta ? tabla.limpiezaPileta : 0
 
-  const totalAdicionales =
+  const baseSueldo = sueldoBasico + adicRem + antiguedad + vivienda
+
+  const adicionalesPorTarea =
     retiroResiduos +
     clasificacionResiduos +
     jardin +
     limpiezaCochera +
     movimientoAutos +
     viaticos +
+    limpiezaPileta +
     tituloEncargado
 
-  const baseSueldo = sueldoBasico + adicRem + antiguedad + vivienda
+  /**
+   * El plus por zona desfavorable es un porcentaje sobre el total de las
+   * remuneraciones, no un importe fijo, así que se calcula al final sobre todo
+   * lo demás. Queda fuera de su propia base para no ser circular.
+   */
+  const zonaDesfavorable = adicionales.zonaDesfavorable
+    ? ((baseSueldo + adicionalesPorTarea) * tabla.zonaDesfavorable) / 100
+    : 0
+
+  const totalAdicionales = adicionalesPorTarea + zonaDesfavorable
 
   /**
    * El valor hora se calcula sobre todo lo remunerativo: el básico, la
@@ -351,10 +383,17 @@ export function calcularLiquidacion({
   agregarHaber("limpiezaCochera", "LIMPIEZA COCHERA", "", limpiezaCochera)
   agregarHaber("movimientoAutos", "MOVIMIENTO AUTOS", "", movimientoAutos)
   agregarHaber("viaticos", "VIÁTICOS", "", viaticos)
+  agregarHaber("limpiezaPileta", "LIMPIEZA PILETA Y MANT. DEL AGUA", "", limpiezaPileta)
   agregarHaber("horas50", "HORAS EXTRAS AL 50%", `${horas50} HS`, montoHoras50)
   agregarHaber("horas100", "HORAS EXTRAS AL 100%", `${horas100} HS`, montoHoras100)
   agregarHaber("vivienda", "VIVIENDA", "", vivienda)
   agregarHaber("titulo", "TÍTULO ENCARGADO INTEGRAL", "", tituloEncargado)
+  agregarHaber(
+    "zonaDesfavorable",
+    "PLUS ZONA DESFAVORABLE",
+    formatPorcentaje(tabla.zonaDesfavorable),
+    zonaDesfavorable
+  )
 
   haberes.push({
     id: "total-haberes",
