@@ -95,6 +95,13 @@ describe("explicarHoras", () => {
     assert.equal(r.texto, "4 sábados × 4 hs")
   })
 
+  it("no pluraliza los días que ya terminan en s", () => {
+    // "5 luness" era lo que salía antes: de lunes a viernes son invariables.
+    assert.equal(explicarHoras("Junio 2026", 1, 2).texto, "5 lunes × 2 hs")
+    assert.equal(explicarHoras("Junio 2026", 3, 2).texto, "4 miércoles × 2 hs")
+    assert.equal(explicarHoras("Junio 2026", 0, 2).texto, "4 domingos × 2 hs")
+  })
+
   it("usa el singular cuando corresponde", () => {
     const r = explicarHoras("Junio 2026", SABADO, 4)
     assert.ok(r.texto.includes("sábados"))

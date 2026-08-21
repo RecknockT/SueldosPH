@@ -11,6 +11,7 @@ import {
   CAMPOS_APORTE,
   type Categoria,
 } from "@/lib/liquidacion"
+import { parsearHorasFijas } from "@/lib/horas-fijas"
 import { PLANILLAS, PLANILLA_POR_DEFECTO } from "@/lib/planillas"
 
 export type EstadoLegajo = { error?: string; ok?: boolean }
@@ -66,6 +67,8 @@ export async function guardarLegajo(formData: FormData): Promise<EstadoLegajo> {
       ...APORTES_INICIALES,
       ...banderas(formData, "aporte", CAMPOS_APORTE.map((c) => c.key)),
     },
+    // Llega como JSON desde el editor del diálogo: se valida antes de guardar.
+    horas_fijas: parsearHorasFijas(formData.get("horas_fijas")),
     art_alicuota: numero(formData, "art_alicuota"),
     art_monto_fijo: numero(formData, "art_monto_fijo"),
     seguro_vida: numero(formData, "seguro_vida"),

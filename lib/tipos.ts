@@ -1,4 +1,5 @@
 import type { CostoLaboral } from "./costo-laboral"
+import type { HoraFija } from "./horas-fijas"
 import type {
   Ajuste,
   Categoria,
@@ -23,6 +24,8 @@ export type Legajo = {
   adic_no_rem: number
   adicionales: Partial<EstadoAdicionales>
   aportes: Partial<EstadoAportes>
+  /** Horas que hace todas las semanas: se resuelven contra el calendario. */
+  horas_fijas: HoraFija[]
   activo: boolean
   notas: string | null
   /** Póliza de ART y seguro de vida del consorcio, para el costo laboral. */
