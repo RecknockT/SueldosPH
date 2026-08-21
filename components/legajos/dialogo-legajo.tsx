@@ -227,6 +227,93 @@ export function DialogoLegajo({
           <Separator />
 
           <div>
+            <p className="mb-3 text-sm font-semibold">Valores habituales</p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <Campo id="uf" label="UF del edificio">
+                <InputNumero
+                  id="uf"
+                  name="uf"
+                  min={0}
+                  step="any"
+                  defaultValue={legajo?.uf ?? 0}
+                />
+              </Campo>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
+            <p className="text-sm font-semibold">Horas fijas</p>
+            <p className="text-muted-foreground mt-1 mb-3 text-xs leading-relaxed">
+              Las horas que hace todas las semanas. Al liquidar se multiplican por
+              los días que tenga el período: cuatro horas los sábados son dieciséis
+              o veinte según el mes.
+            </p>
+            <TablaHorasFijas iniciales={parsearHorasFijas(legajo?.horas_fijas)} />
+          </div>
+
+          <Separator />
+
+          <div>
+            <p className="text-sm font-semibold">Ajustes fijos</p>
+            <p className="text-muted-foreground mt-1 mb-3 text-xs leading-relaxed">
+              Lo que se repite todos los meses: una suma remunerativa, un
+              viático, un descuento fijo. Se precargan al liquidar y ahí se
+              pueden editar o borrar sin tocar el legajo.
+            </p>
+            <AjustesDelLegajo iniciales={parsearAjustes(legajo?.ajustes)} />
+          </div>
+
+          <Separator />
+
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div>
+              <p className="mb-3 text-sm font-semibold">Adicionales por tarea</p>
+              <div className="space-y-2.5">
+                {CAMPOS_ADICIONAL.map((campo) => (
+                  <Label
+                    key={campo.key}
+                    htmlFor={`adic-${campo.key}`}
+                    className="cursor-pointer text-sm font-normal"
+                  >
+                    <Checkbox
+                      id={`adic-${campo.key}`}
+                      name={`adic-${campo.key}`}
+                      aria-label={campo.label}
+                      defaultChecked={adicionales[campo.key] ?? false}
+                    />
+                    {campo.label}
+                  </Label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-3 text-sm font-semibold">Aportes</p>
+              <div className="space-y-2.5">
+                {CAMPOS_APORTE.map((campo) => (
+                  <Label
+                    key={campo.key}
+                    htmlFor={`aporte-${campo.key}`}
+                    className="cursor-pointer text-sm font-normal"
+                  >
+                    <Checkbox
+                      id={`aporte-${campo.key}`}
+                      name={`aporte-${campo.key}`}
+                      aria-label={campo.label}
+                      defaultChecked={aportes[campo.key] ?? true}
+                    />
+                    {campo.label}
+                  </Label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
             <p className="text-sm font-semibold">Costo laboral</p>
             <p className="text-muted-foreground mt-1 mb-3 text-xs leading-relaxed">
               Salen de la póliza del consorcio y se imprimen en el recibo junto a
@@ -294,91 +381,6 @@ export function DialogoLegajo({
           </div>
 
           <Separator />
-
-          <div>
-            <p className="mb-3 text-sm font-semibold">Valores habituales</p>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Campo id="uf" label="UF del edificio">
-                <InputNumero
-                  id="uf"
-                  name="uf"
-                  min={0}
-                  step="any"
-                  defaultValue={legajo?.uf ?? 0}
-                />
-              </Campo>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div>
-            <p className="text-sm font-semibold">Ajustes fijos</p>
-            <p className="text-muted-foreground mt-1 mb-3 text-xs leading-relaxed">
-              Lo que se repite todos los meses: una suma remunerativa, un
-              viático, un descuento fijo. Se precargan al liquidar y ahí se
-              pueden editar o borrar sin tocar el legajo.
-            </p>
-            <AjustesDelLegajo iniciales={parsearAjustes(legajo?.ajustes)} />
-          </div>
-
-          <Separator />
-
-          <div>
-            <p className="text-sm font-semibold">Horas fijas</p>
-            <p className="text-muted-foreground mt-1 mb-3 text-xs leading-relaxed">
-              Las horas que hace todas las semanas. Al liquidar se multiplican por
-              los días que tenga el período: cuatro horas los sábados son dieciséis
-              o veinte según el mes.
-            </p>
-            <TablaHorasFijas iniciales={parsearHorasFijas(legajo?.horas_fijas)} />
-          </div>
-
-          <Separator />
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div>
-              <p className="mb-3 text-sm font-semibold">Adicionales por tarea</p>
-              <div className="space-y-2.5">
-                {CAMPOS_ADICIONAL.map((campo) => (
-                  <Label
-                    key={campo.key}
-                    htmlFor={`adic-${campo.key}`}
-                    className="cursor-pointer text-sm font-normal"
-                  >
-                    <Checkbox
-                      id={`adic-${campo.key}`}
-                      name={`adic-${campo.key}`}
-                      aria-label={campo.label}
-                      defaultChecked={adicionales[campo.key] ?? false}
-                    />
-                    {campo.label}
-                  </Label>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-3 text-sm font-semibold">Aportes</p>
-              <div className="space-y-2.5">
-                {CAMPOS_APORTE.map((campo) => (
-                  <Label
-                    key={campo.key}
-                    htmlFor={`aporte-${campo.key}`}
-                    className="cursor-pointer text-sm font-normal"
-                  >
-                    <Checkbox
-                      id={`aporte-${campo.key}`}
-                      name={`aporte-${campo.key}`}
-                      aria-label={campo.label}
-                      defaultChecked={aportes[campo.key] ?? true}
-                    />
-                    {campo.label}
-                  </Label>
-                ))}
-              </div>
-            </div>
-          </div>
 
           <Campo id="notas" label="Notas">
             <Textarea
