@@ -192,6 +192,7 @@ export function DocumentoRecibo({
           <p className="text-[10px] text-neutral-500">
             Ley 20.744 · Período {snapshot.periodo} · {copia}
           </p>
+
           {costoLaboral ? (
             <span
               className="mt-1 inline-block -rotate-1 rounded-sm border-[1.5px] px-1.5 py-0.5 text-[9px] font-bold tracking-[0.1em] uppercase"

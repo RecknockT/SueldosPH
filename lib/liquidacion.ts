@@ -185,18 +185,19 @@ export type Ajuste = {
   concepto: string
   columna: ColumnaAjuste
   monto: number
-  /** Sólo para haberes: no integra la base de aportes. */
-  noRemunerativo: boolean
-  /** Sólo para haberes remunerativos: integra la base del valor hora. */
-  sumaAlJornal: boolean
+  /**
+   * Sólo para haberes. Remunerativo es una sola cosa: paga aportes y entra al
+   * valor hora. Antes eran dos marcas, lo que dejaba pedir una tercera
+   * combinación —remunerativo pero fuera del jornal— que no existe.
+   */
+  remunerativo: boolean
 }
 
 export const AJUSTE_VACIO: Omit<Ajuste, "id"> = {
   concepto: "",
   columna: "haber",
   monto: 0,
-  noRemunerativo: false,
-  sumaAlJornal: true,
+  remunerativo: true,
 }
 
 export type FilaRecibo = {
@@ -369,28 +370,24 @@ export function calcularLiquidacion({
    * cobraba jardín, cochera, movimiento de autos, viáticos o título de encargado
    * integral tenía la hora subvaluada.
    */
-  // Los ajustes se parten en tres: lo que suma al jornal, lo que es
-  // remunerativo pero no al jornal, y lo no remunerativo.
+  // Los ajustes se parten en tres: haberes remunerativos, haberes no
+  // remunerativos y descuentos.
   const limpios = ajustes.map((a) => ({ ...a, monto: Math.max(0, num(a.monto)) }))
   const haberesAjuste = limpios.filter((a) => a.columna === "haber")
 
-  const ajusteAlJornal = haberesAjuste
-    .filter((a) => !a.noRemunerativo && a.sumaAlJornal)
-    .reduce((acc, a) => acc + a.monto, 0)
-
   const ajusteRemunerativo = haberesAjuste
-    .filter((a) => !a.noRemunerativo)
+    .filter((a) => a.remunerativo)
     .reduce((acc, a) => acc + a.monto, 0)
 
   const ajusteNoRemunerativo = haberesAjuste
-    .filter((a) => a.noRemunerativo)
+    .filter((a) => !a.remunerativo)
     .reduce((acc, a) => acc + a.monto, 0)
 
   const ajusteDescuento = limpios
     .filter((a) => a.columna === "descuento")
     .reduce((acc, a) => acc + a.monto, 0)
 
-  const baseValorHora = baseSueldo + totalAdicionales + ajusteAlJornal
+  const baseValorHora = baseSueldo + totalAdicionales + ajusteRemunerativo
   const valorHora = baseValorHora / HORAS_MENSUALES
 
   const montoHoras100 = horas100 * valorHora * MULTIPLICADOR_HORA_100
@@ -448,7 +445,7 @@ export function calcularLiquidacion({
     agregarHaber(
       `ajuste-${ajuste.id}`,
       ajuste.concepto.trim().toUpperCase() || "AJUSTE",
-      ajuste.noRemunerativo ? "NO REM." : "",
+      ajuste.remunerativo ? "" : "NO REM.",
       ajuste.monto
     )
   }
