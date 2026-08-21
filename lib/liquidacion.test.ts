@@ -183,6 +183,48 @@ describe("calcularLiquidacion", () => {
     casi(con.valorHora - sin.valorHora, 100000 / 200)
   })
 
+  it("liquida la limpieza de pileta como importe fijo de la planilla", () => {
+    const r = liquidar({ adicionales: { limpiezaPileta: true } })
+    casi(r.totalAdicionales, 47996.6)
+  })
+
+  it("calcula la zona desfavorable sobre todo lo demás remunerativo", () => {
+    const sinZona = liquidar({
+      cargo: CON_VIVIENDA,
+      entradas: { antiguedad: 5, uf: 20, adicRem: 50000 },
+      adicionales: { retiroResiduos: true, jardin: true, viaticos: true },
+    })
+
+    const conZona = liquidar({
+      cargo: CON_VIVIENDA,
+      entradas: { antiguedad: 5, uf: 20, adicRem: 50000 },
+      adicionales: {
+        retiroResiduos: true,
+        jardin: true,
+        viaticos: true,
+        zonaDesfavorable: true,
+      },
+    })
+
+    // El 50% se calcula sobre la base sin el propio plus: no es circular.
+    casi(conZona.bruto, sinZona.bruto * 1.5)
+  })
+
+  it("la zona desfavorable también levanta el valor hora", () => {
+    const sinZona = liquidar({ adicionales: {} })
+    const conZona = liquidar({ adicionales: { zonaDesfavorable: true } })
+
+    casi(conZona.valorHora, sinZona.valorHora * 1.5)
+  })
+
+  it("imprime la zona desfavorable con su porcentaje", () => {
+    const r = liquidar({ adicionales: { zonaDesfavorable: true } })
+    const fila = r.haberes.find((f) => f.id === "zonaDesfavorable")
+
+    assert.equal(fila?.detalle, "PLUS ZONA DESFAVORABLE")
+    assert.equal(fila?.unidad, "50%")
+  })
+
   it("paga la hora al 100% más que la hora al 50%", () => {
     const alCincuenta = liquidar({ entradas: { horas50: 10 } })
     const alCien = liquidar({ entradas: { horas100: 10 } })
