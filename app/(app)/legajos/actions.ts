@@ -9,6 +9,7 @@ import {
   APORTES_INICIALES,
   CAMPOS_ADICIONAL,
   CAMPOS_APORTE,
+  parsearAjustes,
   type Categoria,
 } from "@/lib/liquidacion"
 import { parsearHorasFijas } from "@/lib/horas-fijas"
@@ -57,8 +58,6 @@ export async function guardarLegajo(formData: FormData): Promise<EstadoLegajo> {
     consorcio_nombre: texto(formData, "consorcio_nombre"),
     consorcio_cuit: texto(formData, "consorcio_cuit"),
     uf: numero(formData, "uf"),
-    adic_rem: numero(formData, "adic_rem"),
-    adic_no_rem: numero(formData, "adic_no_rem"),
     adicionales: {
       ...ADICIONALES_INICIALES,
       ...banderas(formData, "adic", CAMPOS_ADICIONAL.map((c) => c.key)),
@@ -67,8 +66,9 @@ export async function guardarLegajo(formData: FormData): Promise<EstadoLegajo> {
       ...APORTES_INICIALES,
       ...banderas(formData, "aporte", CAMPOS_APORTE.map((c) => c.key)),
     },
-    // Llega como JSON desde el editor del diálogo: se valida antes de guardar.
+    // Llegan como JSON desde los editores del diálogo: se validan antes de guardar.
     horas_fijas: parsearHorasFijas(formData.get("horas_fijas")),
+    ajustes: parsearAjustes(formData.get("ajustes")),
     art_alicuota: numero(formData, "art_alicuota"),
     art_monto_fijo: numero(formData, "art_monto_fijo"),
     seguro_vida: numero(formData, "seguro_vida"),

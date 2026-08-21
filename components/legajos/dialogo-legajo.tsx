@@ -29,11 +29,13 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 
+import { AjustesDelLegajo } from "./ajustes-del-legajo"
 import { TablaHorasFijas } from "./tabla-horas-fijas"
 import {
   CAMPOS_ADICIONAL,
   CAMPOS_APORTE,
   CATEGORIAS,
+  parsearAjustes,
   type EstadoAdicionales,
   type EstadoAportes,
 } from "@/lib/liquidacion"
@@ -305,27 +307,19 @@ export function DialogoLegajo({
                   defaultValue={legajo?.uf ?? 0}
                 />
               </Campo>
-
-              <Campo id="adic_rem" label="Adic. remunerativo">
-                <InputNumero
-                  id="adic_rem"
-                  name="adic_rem"
-                  min={0}
-                  step="any"
-                  defaultValue={legajo?.adic_rem ?? 0}
-                />
-              </Campo>
-
-              <Campo id="adic_no_rem" label="Adic. no remunerativo">
-                <InputNumero
-                  id="adic_no_rem"
-                  name="adic_no_rem"
-                  min={0}
-                  step="any"
-                  defaultValue={legajo?.adic_no_rem ?? 0}
-                />
-              </Campo>
             </div>
+          </div>
+
+          <Separator />
+
+          <div>
+            <p className="text-sm font-semibold">Ajustes fijos</p>
+            <p className="text-muted-foreground mt-1 mb-3 text-xs leading-relaxed">
+              Lo que se repite todos los meses: una suma remunerativa, un
+              viático, un descuento fijo. Se precargan al liquidar y ahí se
+              pueden editar o borrar sin tocar el legajo.
+            </p>
+            <AjustesDelLegajo iniciales={parsearAjustes(legajo?.ajustes)} />
           </div>
 
           <Separator />

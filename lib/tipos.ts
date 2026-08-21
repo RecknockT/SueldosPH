@@ -20,12 +20,12 @@ export type Legajo = {
   consorcio_nombre: string | null
   consorcio_cuit: string | null
   uf: number
-  adic_rem: number
-  adic_no_rem: number
   adicionales: Partial<EstadoAdicionales>
   aportes: Partial<EstadoAportes>
   /** Horas que hace todas las semanas: se resuelven contra el calendario. */
   horas_fijas: HoraFija[]
+  /** Ajustes que se repiten todos los meses: se precargan al liquidar. */
+  ajustes: Ajuste[]
   activo: boolean
   notas: string | null
   /** Póliza de ART y seguro de vida del consorcio, para el costo laboral. */
