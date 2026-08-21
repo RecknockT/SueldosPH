@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
+
+import { TablaHorasFijas } from "./tabla-horas-fijas"
 import {
   CAMPOS_ADICIONAL,
   CAMPOS_APORTE,
@@ -35,6 +37,7 @@ import {
   type EstadoAdicionales,
   type EstadoAportes,
 } from "@/lib/liquidacion"
+import { parsearHorasFijas } from "@/lib/horas-fijas"
 import { PLANILLAS, PLANILLA_POR_DEFECTO } from "@/lib/planillas"
 import type { Legajo } from "@/lib/tipos"
 
@@ -324,6 +327,20 @@ export function DialogoLegajo({
               </Campo>
             </div>
           </div>
+
+          <Separator />
+
+          <div>
+            <p className="text-sm font-semibold">Horas fijas</p>
+            <p className="text-muted-foreground mt-1 mb-3 text-xs leading-relaxed">
+              Las horas que hace todas las semanas. Al liquidar se multiplican por
+              los días que tenga el período: cuatro horas los sábados son dieciséis
+              o veinte según el mes.
+            </p>
+            <TablaHorasFijas iniciales={parsearHorasFijas(legajo?.horas_fijas)} />
+          </div>
+
+          <Separator />
 
           <div className="grid gap-6 sm:grid-cols-2">
             <div>

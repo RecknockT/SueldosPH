@@ -37,8 +37,14 @@ export type CalendarioMes = {
   huecoInicial: number
 }
 
-const plural = (n: number, singular: string) =>
-  n === 1 ? singular : singular === "sábado" ? "sábados" : `${singular}s`
+/**
+ * Plural del día.
+ *
+ * De lunes a viernes son invariables —"5 viernes", no "5 vierneses"—; sólo
+ * sábado y domingo toman la s.
+ */
+export const pluralDia = (n: number, singular: string) =>
+  n === 1 || singular.endsWith("s") ? singular : `${singular}s`
 
 /** "Junio 2026" -> el calendario de ese mes. */
 export function calendarioDe(periodo: string): CalendarioMes | null {
@@ -92,7 +98,7 @@ export function explicarHoras(
   return {
     cantidad,
     total,
-    texto: `${cantidad} ${plural(cantidad, NOMBRES_DIA[diaSemana])} × ${horasPorDia} hs`,
+    texto: `${cantidad} ${pluralDia(cantidad, NOMBRES_DIA[diaSemana])} × ${horasPorDia} hs`,
   }
 }
 

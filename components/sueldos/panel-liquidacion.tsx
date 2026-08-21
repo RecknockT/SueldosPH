@@ -35,7 +35,15 @@ import {
   calcularCostoLaboral,
   type ConfigCostoLaboral,
 } from "@/lib/costo-laboral"
+import { feriadosDelPeriodo } from "@/lib/feriados"
 import { formatPesos, formatPesosCompacto } from "@/lib/format"
+import {
+  SIN_HORAS_FIJAS,
+  parsearHorasFijas,
+  resolverHorasFijas,
+  type HoraFija,
+  type HorasResueltas,
+} from "@/lib/horas-fijas"
 import { aniosDeAntiguedad } from "@/lib/periodos"
 import { PLANILLAS, PLANILLA_KEYS, PLANILLA_POR_DEFECTO } from "@/lib/planillas"
 import type { Legajo } from "@/lib/tipos"
@@ -93,6 +101,9 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
   const [adicionales, setAdicionales] = useState<EstadoAdicionales>(ADICIONALES_INICIALES)
   const [aportes, setAportes] = useState<EstadoAportes>(APORTES_INICIALES)
   const [ajustes, setAjustes] = useState<Ajuste[]>([])
+  // Las reglas vienen del legajo; las horas son lo que dan en este período.
+  const [reglasFijas, setReglasFijas] = useState<HoraFija[]>([])
+  const [horasFijas, setHorasFijas] = useState<HorasResueltas>(SIN_HORAS_FIJAS)
   const [reciboAbierto, setReciboAbierto] = useState(false)
   const [configCosto, setConfigCosto] = useState<ConfigCostoLaboral>(
     CONFIG_COSTO_LABORAL_POR_DEFECTO
@@ -128,6 +139,9 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
     toast.success(`${horas} hs sumadas a horas al ${tramo === "horas50" ? "50" : "100"}%`)
   }
 
+  const resolverEnPeriodo = (reglas: HoraFija[], periodo: string) =>
+    resolverHorasFijas(reglas, periodo, feriadosDelPeriodo(periodo).length)
+
   const setDato = (key: keyof Empleado) => (valor: string) =>
     setEmpleado((prev) => ({ ...prev, [key]: valor }))
 
@@ -141,6 +155,8 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
       setAdicionales(ADICIONALES_INICIALES)
       setAportes(APORTES_INICIALES)
       setConfigCosto(CONFIG_COSTO_LABORAL_POR_DEFECTO)
+      setReglasFijas([])
+      setHorasFijas(SIN_HORAS_FIJAS)
       return
     }
 
@@ -156,11 +172,20 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
       consorcioNombre: legajo.consorcio_nombre ?? "",
       consorcioCuit: legajo.consorcio_cuit ?? "",
     })
+    // Las horas fijas del legajo ya resueltas contra el calendario del período.
+    const reglas = parsearHorasFijas(legajo.horas_fijas)
+    const resueltas = resolverEnPeriodo(reglas, planillaKey)
+
+    setReglasFijas(reglas)
+    setHorasFijas(resueltas)
+
     setEntradas({
       ...ENTRADAS_INICIALES,
       uf: legajo.uf,
       adicRem: legajo.adic_rem,
       adicNoRem: legajo.adic_no_rem,
+      horas50: resueltas.horas50,
+      horas100: resueltas.horas100,
       // La antigüedad sale de la fecha de ingreso, no se carga a mano.
       antiguedad: aniosDeAntiguedad(legajo.fecha_ingreso, planillaKey),
     })
@@ -181,13 +206,28 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
   const cambiarPlanilla = (valor: string) => {
     setPlanillaKey(valor)
 
-    // La antigüedad depende del período: se recalcula si vino de un legajo.
-    if (legajoId !== SIN_LEGAJO && empleado.fechaIngreso) {
-      setEntradas((prev) => ({
-        ...prev,
-        antiguedad: aniosDeAntiguedad(empleado.fechaIngreso, valor),
-      }))
-    }
+    if (legajoId === SIN_LEGAJO) return
+
+    // La antigüedad y las horas fijas dependen del período. Las horas se
+    // reemplazan por diferencia —sale lo del mes viejo, entra lo del nuevo—
+    // para no borrar las que el usuario haya sumado a mano.
+    const resueltas = resolverEnPeriodo(reglasFijas, valor)
+    setHorasFijas(resueltas)
+
+    setEntradas((prev) => ({
+      ...prev,
+      antiguedad: empleado.fechaIngreso
+        ? aniosDeAntiguedad(empleado.fechaIngreso, valor)
+        : prev.antiguedad,
+      horas50: Math.max(
+        0,
+        numero(prev.horas50) - horasFijas.horas50 + resueltas.horas50
+      ),
+      horas100: Math.max(
+        0,
+        numero(prev.horas100) - horasFijas.horas100 + resueltas.horas100
+      ),
+    }))
   }
 
   const reiniciar = () => {
@@ -199,6 +239,8 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
     setAdicionales(ADICIONALES_INICIALES)
     setAportes(APORTES_INICIALES)
     setAjustes([])
+    setReglasFijas([])
+    setHorasFijas(SIN_HORAS_FIJAS)
     setReciboAbierto(false)
     toast.success("Formulario reiniciado")
   }
@@ -597,7 +639,27 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
             <TituloCalendario periodo={planillaKey} />
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {horasFijas.detalle.length > 0 ? (
+            <div className="bg-muted/50 rounded-lg px-3 py-2">
+              <p className="text-xs font-semibold">Horas fijas del legajo</p>
+              <ul className="text-muted-foreground mt-1 space-y-0.5 text-xs">
+                {horasFijas.detalle.map((linea) => (
+                  <li key={linea.id}>
+                    {linea.texto} ={" "}
+                    <span className="text-foreground tabular font-medium">
+                      {linea.horas} hs
+                    </span>{" "}
+                    al {linea.tramo === "horas50" ? "50" : "100"}%
+                  </li>
+                ))}
+              </ul>
+              <p className="text-muted-foreground mt-1.5 text-xs">
+                Ya están cargadas arriba. Se recalculan al cambiar de período.
+              </p>
+            </div>
+          ) : null}
+
           <CalendarioPeriodo periodo={planillaKey} onSumarHoras={sumarHoras} />
         </CardContent>
       </Card>
