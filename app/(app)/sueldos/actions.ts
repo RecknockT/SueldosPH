@@ -13,6 +13,7 @@ import {
   APORTES_INICIALES,
   ENTRADAS_INICIALES,
   calcularLiquidacion,
+  parsearAjustes,
   type Categoria,
   type Ajuste,
   type Entradas,
@@ -66,7 +67,7 @@ export async function guardarLiquidacion(
   const adicionales: EstadoAdicionales = { ...ADICIONALES_INICIALES, ...datos.adicionales }
   const aportes: EstadoAportes = { ...APORTES_INICIALES, ...datos.aportes }
 
-  const ajustes = datos.ajustes ?? []
+  const ajustes = parsearAjustes(datos.ajustes)
 
   const resultado = calcularLiquidacion({
     planilla,

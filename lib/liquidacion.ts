@@ -50,8 +50,6 @@ export type ClaveEntrada =
   | "antiguedad"
   | "horas50"
   | "horas100"
-  | "adicRem"
-  | "adicNoRem"
 
 /** Valores numéricos que carga el usuario. Se permite "" para poder vaciar el campo. */
 export type Entradas = Record<ClaveEntrada, number | "">
@@ -64,8 +62,6 @@ export const ENTRADAS_INICIALES: Entradas = {
   antiguedad: 0,
   horas50: 0,
   horas100: 0,
-  adicRem: 0,
-  adicNoRem: 0,
 }
 
 export const ADICIONALES_INICIALES: EstadoAdicionales = {
@@ -99,12 +95,6 @@ export const CAMPOS_ENTRADA: {
   { key: "antiguedad", label: "Antigüedad", ayuda: "Años cumplidos" },
   { key: "horas50", label: "Horas al 50%", ayuda: "Se pagan a 1,5 veces el valor hora" },
   { key: "horas100", label: "Horas al 100%", ayuda: "Se pagan al doble del valor hora" },
-  { key: "adicRem", label: "Adic. remunerativo", ayuda: "Suma fija en pesos" },
-  {
-    key: "adicNoRem",
-    label: "Adic. no remunerativo",
-    ayuda: "No integra la base de aportes",
-  },
 ]
 
 export const CAMPOS_ADICIONAL: {
@@ -193,6 +183,53 @@ export type Ajuste = {
   remunerativo: boolean
 }
 
+/**
+ * Ajustes confiables a partir de algo que no lo es.
+ *
+ * Entra lo que devuelve la base y lo que manda el cliente al guardar: ninguno
+ * de los dos está tipado de verdad, así que lo que no encaje se descarta en
+ * vez de llegar al cálculo.
+ */
+export function parsearAjustes(valor: unknown): Ajuste[] {
+  const crudo = typeof valor === "string" ? intentarJSON(valor) : valor
+  if (!Array.isArray(crudo)) return []
+
+  const ajustes: Ajuste[] = []
+
+  for (const [i, item] of crudo.entries()) {
+    if (typeof item !== "object" || item === null) continue
+
+    const { id, concepto, columna, monto, remunerativo } = item as Record<string, unknown>
+
+    const importe = Number(monto)
+    if (!Number.isFinite(importe) || importe <= 0) continue
+
+    const texto = typeof concepto === "string" ? concepto.trim() : ""
+    if (texto === "") continue
+
+    const esDescuento = columna === "descuento"
+
+    ajustes.push({
+      id: typeof id === "string" && id !== "" ? id : `ajuste-${i}`,
+      concepto: texto,
+      columna: esDescuento ? "descuento" : "haber",
+      monto: importe,
+      // Un descuento nunca es remunerativo; en los haberes, el default es que sí.
+      remunerativo: esDescuento ? false : remunerativo !== false,
+    })
+  }
+
+  return ajustes
+}
+
+function intentarJSON(texto: string): unknown {
+  try {
+    return JSON.parse(texto)
+  } catch {
+    return null
+  }
+}
+
 export const AJUSTE_VACIO: Omit<Ajuste, "id"> = {
   concepto: "",
   columna: "haber",
@@ -218,6 +255,8 @@ export type Liquidacion = {
   valorHora: number
   horasExtras: number
   bruto: number
+  /** Lo que suma la columna del recibo: el bruto más lo no remunerativo. */
+  totalHaberes: number
   descuentos: number
   noRemunerativo: number
   neto: number
@@ -241,9 +280,6 @@ const num = (valor: number | "") => (valor === "" ? 0 : Number(valor) || 0)
  * "Planilla Salarial Mayo 2026" -> "MAYO 2026", que es como se nombra el
  * período en el recibo. El nombre completo del JSON no va impreso.
  */
-export function periodoDe(planilla: Planilla) {
-  return planilla.nombre.replace(/^planilla\s+salarial\s*/i, "").toUpperCase()
-}
 
 export function formatPorcentaje(valor: number) {
   return `${valor.toString().replace(".", ",")}%`
@@ -309,8 +345,6 @@ export function calcularLiquidacion({
   const anios = num(entradas.antiguedad)
   const horas100 = num(entradas.horas100)
   const horas50 = num(entradas.horas50)
-  const adicRem = num(entradas.adicRem)
-  const adicNoRem = num(entradas.adicNoRem)
 
   const nombreCargo = cargo?.nombre ?? ""
   const tabla = planilla.adicionales
@@ -338,7 +372,7 @@ export function calcularLiquidacion({
   const viaticos = adicionales.viaticos ? tabla.viaticos : 0
   const limpiezaPileta = adicionales.limpiezaPileta ? tabla.limpiezaPileta : 0
 
-  const baseSueldo = sueldoBasico + adicRem + antiguedad + vivienda
+  const baseSueldo = sueldoBasico + antiguedad + vivienda
 
   const adicionalesPorTarea =
     retiroResiduos +
@@ -350,26 +384,6 @@ export function calcularLiquidacion({
     limpiezaPileta +
     tituloEncargado
 
-  /**
-   * El plus por zona desfavorable es un porcentaje sobre el total de las
-   * remuneraciones, no un importe fijo, así que se calcula al final sobre todo
-   * lo demás. Queda fuera de su propia base para no ser circular.
-   */
-  const zonaDesfavorable = adicionales.zonaDesfavorable
-    ? ((baseSueldo + adicionalesPorTarea) * tabla.zonaDesfavorable) / 100
-    : 0
-
-  const totalAdicionales = adicionalesPorTarea + zonaDesfavorable
-
-  /**
-   * El valor hora se calcula sobre todo lo remunerativo: el básico, la
-   * antigüedad, la vivienda, la suma remunerativa y los adicionales por tarea.
-   * Es la misma base que la del bruto, sin las horas extra.
-   *
-   * Antes sólo entraban retiro y clasificación de residuos, así que quien
-   * cobraba jardín, cochera, movimiento de autos, viáticos o título de encargado
-   * integral tenía la hora subvaluada.
-   */
   // Los ajustes se parten en tres: haberes remunerativos, haberes no
   // remunerativos y descuentos.
   const limpios = ajustes.map((a) => ({ ...a, monto: Math.max(0, num(a.monto)) }))
@@ -387,6 +401,32 @@ export function calcularLiquidacion({
     .filter((a) => a.columna === "descuento")
     .reduce((acc, a) => acc + a.monto, 0)
 
+  /**
+   * El plus por zona desfavorable es un porcentaje sobre el total de las
+   * remuneraciones, no un importe fijo, así que se calcula al final sobre todo
+   * lo demás. Queda fuera de su propia base para no ser circular.
+   *
+   * Los ajustes remunerativos entran a la base: son remuneración como
+   * cualquier otra. Antes entraba sólo la suma remunerativa, porque era un
+   * campo aparte; ahora que es un ajuste más, entran todos.
+   */
+  const zonaDesfavorable = adicionales.zonaDesfavorable
+    ? ((baseSueldo + adicionalesPorTarea + ajusteRemunerativo) *
+        tabla.zonaDesfavorable) /
+      100
+    : 0
+
+  const totalAdicionales = adicionalesPorTarea + zonaDesfavorable
+
+  /**
+   * El valor hora se calcula sobre todo lo remunerativo: el básico, la
+   * antigüedad, la vivienda, la suma remunerativa y los adicionales por tarea.
+   * Es la misma base que la del bruto, sin las horas extra.
+   *
+   * Antes sólo entraban retiro y clasificación de residuos, así que quien
+   * cobraba jardín, cochera, movimiento de autos, viáticos o título de encargado
+   * integral tenía la hora subvaluada.
+   */
   const baseValorHora = baseSueldo + totalAdicionales + ajusteRemunerativo
   const valorHora = baseValorHora / HORAS_MENSUALES
 
@@ -404,7 +444,17 @@ export function calcularLiquidacion({
   // después porque es un beneficio en especie, no efectivo.
   descuentos += vivienda + ajusteDescuento
 
-  const noRemunerativo = adicNoRem + ajusteNoRemunerativo
+  const noRemunerativo = ajusteNoRemunerativo
+
+  /**
+   * Lo que suma la columna de haberes del recibo.
+   *
+   * No es lo mismo que el bruto: el bruto es la base de aportes y
+   * contribuciones, y deja afuera lo no remunerativo. Pero lo no remunerativo
+   * se imprime igual —marcado "NO REM."—, así que si el total mostrara el
+   * bruto la columna no cerraría.
+   */
+  const totalHaberes = bruto + noRemunerativo
   const neto = bruto - descuentos + noRemunerativo
 
   const haberes: FilaRecibo[] = [
@@ -424,7 +474,6 @@ export function calcularLiquidacion({
   agregarHaber("antiguedad", "ANTIGÜEDAD", `${anios} AÑOS`, antiguedad)
   agregarHaber("retiroResiduos", "RETIRO RESIDUOS", `${uf} UF`, retiroResiduos)
   agregarHaber("clasifResiduos", "CLASIF. RESIDUOS", "", clasificacionResiduos)
-  agregarHaber("adicRem", `SUMA REMUNERATIVA ${periodoDe(planilla)}`, "", adicRem)
   agregarHaber("jardin", "JARDÍN", "", jardin)
   agregarHaber("limpiezaCochera", "LIMPIEZA COCHERA", "", limpiezaCochera)
   agregarHaber("movimientoAutos", "MOVIMIENTO AUTOS", "", movimientoAutos)
@@ -454,7 +503,7 @@ export function calcularLiquidacion({
     id: "total-haberes",
     detalle: "TOTAL HABERES",
     unidad: "",
-    haber: bruto,
+    haber: totalHaberes,
     descuento: 0,
     esTotal: true,
   })
@@ -516,6 +565,7 @@ export function calcularLiquidacion({
     valorHora,
     horasExtras,
     bruto,
+    totalHaberes,
     descuentos,
     noRemunerativo,
     neto,

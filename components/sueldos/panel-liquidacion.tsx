@@ -60,6 +60,7 @@ import {
   calcularLiquidacion,
   formatPorcentaje,
   montoAdicionalDe,
+  parsearAjustes,
   type Ajuste,
   type Categoria,
   type ClaveEntrada,
@@ -204,6 +205,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
       setAdicionales(ADICIONALES_INICIALES)
       setAportes(APORTES_INICIALES)
       setConfigCosto(CONFIG_COSTO_LABORAL_POR_DEFECTO)
+      setAjustes([])
       setReglasFijas([])
       setHorasFijas(SIN_HORAS_FIJAS)
       return
@@ -228,11 +230,13 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
     setReglasFijas(reglas)
     setHorasFijas(resolverEnPeriodo(reglas, planillaKey))
 
+    // Los ajustes fijos del legajo son un punto de partida: se pueden editar
+    // o borrar en esta liquidación sin que cambie el legajo.
+    setAjustes(parsearAjustes(legajo.ajustes))
+
     setEntradas({
       ...ENTRADAS_INICIALES,
       uf: legajo.uf,
-      adicRem: legajo.adic_rem,
-      adicNoRem: legajo.adic_no_rem,
       // La antigüedad sale de la fecha de ingreso, no se carga a mano.
       antiguedad: aniosDeAntiguedad(legajo.fecha_ingreso, planillaKey),
     })
@@ -322,7 +326,7 @@ export function PanelLiquidacion({ legajos }: { legajos: Legajo[] }) {
   const uf = numero(entradas.uf)
 
   const estadisticas = [
-    { label: "Total haberes", valor: formatPesos(liquidacion.bruto) },
+    { label: "Total haberes", valor: formatPesos(liquidacion.totalHaberes) },
     { label: "Descuentos", valor: `−${formatPesos(liquidacion.descuentos)}` },
     { label: "Neto a cobrar", valor: formatPesos(liquidacion.neto), destacado: true },
     {

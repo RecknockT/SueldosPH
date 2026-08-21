@@ -6,6 +6,7 @@ import {
   APORTES_INICIALES,
   ENTRADAS_INICIALES,
   calcularLiquidacion,
+  parsearAjustes,
   cobraVivienda,
   type Ajuste,
   type EstadoAdicionales,
@@ -71,12 +72,14 @@ function liquidar({
   entradas = {},
   adicionales = {},
   aportes = {},
+  ajustes = [],
 }: {
   cargo?: Cargo
   categoria?: 1 | 2 | 3 | 4
   entradas?: Partial<Entradas>
   adicionales?: Partial<EstadoAdicionales>
   aportes?: Partial<EstadoAportes>
+  ajustes?: Ajuste[]
 } = {}) {
   return calcularLiquidacion({
     planilla: PLANILLA,
@@ -85,8 +88,18 @@ function liquidar({
     entradas: { ...ENTRADAS_INICIALES, ...entradas },
     adicionales: { ...ADICIONALES_INICIALES, ...adicionales },
     aportes: { ...APORTES_INICIALES, ...aportes },
+    ajustes,
   })
 }
+
+/** La suma remunerativa dejó de ser un campo: ahora es un ajuste del legajo. */
+const sumaRem = (monto: number): Ajuste => ({
+  id: "suma-rem",
+  concepto: "Suma remunerativa",
+  columna: "haber",
+  monto,
+  remunerativo: true,
+})
 
 const casi = (a: number, b: number, mensaje?: string) =>
   assert.ok(
@@ -141,7 +154,8 @@ describe("calcularLiquidacion", () => {
   it("calcula el valor hora sobre todo lo remunerativo", () => {
     const r = liquidar({
       cargo: CON_VIVIENDA,
-      entradas: { antiguedad: 5, uf: 20, adicRem: 50000 },
+      entradas: { antiguedad: 5, uf: 20 },
+      ajustes: [sumaRem(50000)],
       adicionales: {
         retiroResiduos: true,
         clasificacionResiduos: true,
@@ -178,13 +192,6 @@ describe("calcularLiquidacion", () => {
     }
   })
 
-  it("la suma remunerativa entra al valor hora", () => {
-    const sin = liquidar()
-    const con = liquidar({ entradas: { adicRem: 100000 } })
-
-    casi(con.valorHora - sin.valorHora, 100000 / 200)
-  })
-
   it("liquida la limpieza de pileta como importe fijo de la planilla", () => {
     const r = liquidar({ adicionales: { limpiezaPileta: true } })
     casi(r.totalAdicionales, 47996.6)
@@ -193,13 +200,15 @@ describe("calcularLiquidacion", () => {
   it("calcula la zona desfavorable sobre todo lo demás remunerativo", () => {
     const sinZona = liquidar({
       cargo: CON_VIVIENDA,
-      entradas: { antiguedad: 5, uf: 20, adicRem: 50000 },
+      entradas: { antiguedad: 5, uf: 20 },
+      ajustes: [sumaRem(50000)],
       adicionales: { retiroResiduos: true, jardin: true, viaticos: true },
     })
 
     const conZona = liquidar({
       cargo: CON_VIVIENDA,
-      entradas: { antiguedad: 5, uf: 20, adicRem: 50000 },
+      entradas: { antiguedad: 5, uf: 20 },
+      ajustes: [sumaRem(50000)],
       adicionales: {
         retiroResiduos: true,
         jardin: true,
@@ -257,15 +266,6 @@ describe("calcularLiquidacion", () => {
     casi(r.tituloEncargado, 1348432 * 0.1)
   })
 
-  it("deja el adicional no remunerativo fuera de la base de aportes", () => {
-    const base = liquidar()
-    const conNoRem = liquidar({ entradas: { adicNoRem: 100000 } })
-
-    casi(conNoRem.bruto, base.bruto)
-    casi(conNoRem.descuentos, base.descuentos)
-    casi(conNoRem.neto, base.neto + 100000)
-  })
-
   it("respeta los aportes desactivados", () => {
     const r = liquidar({ aportes: { jubilacion: false, sindicato: false } })
     casi(r.descuentos, 1348432 * ((TOTAL_APORTES - 11 - 2) / 100))
@@ -278,20 +278,6 @@ describe("calcularLiquidacion", () => {
 })
 
 describe("etiquetas del recibo", () => {
-  it("nombra el período sin arrastrar el nombre del JSON", () => {
-    const r = calcularLiquidacion({
-      planilla: { ...PLANILLA, nombre: "Planilla Salarial Mayo 2026" },
-      cargo: SIN_VIVIENDA,
-      categoria: 1,
-      entradas: { ...ENTRADAS_INICIALES, adicRem: 80000 },
-      adicionales: ADICIONALES_INICIALES,
-      aportes: APORTES_INICIALES,
-    })
-
-    const fila = r.haberes.find((f) => f.id === "adicRem")
-    assert.equal(fila?.detalle, "SUMA REMUNERATIVA MAYO 2026")
-  })
-
   it("nombra el aporte del 0,75% como ART 27 bis, no como seguro vitalicio", () => {
     const fila = liquidar().deducciones.find((f) => f.id === "seguroVitalicio")
 
@@ -302,7 +288,17 @@ describe("etiquetas del recibo", () => {
 describe("detalle del recibo", () => {
   const r = liquidar({
     cargo: CON_VIVIENDA,
-    entradas: { uf: 40, antiguedad: 7, horas100: 4, horas50: 3, adicRem: 50000, adicNoRem: 20000 },
+    entradas: { uf: 40, antiguedad: 7, horas100: 4, horas50: 3 },
+    ajustes: [
+      sumaRem(50000),
+      {
+        id: "no-rem",
+        concepto: "Adicional no remunerativo",
+        columna: "haber",
+        monto: 20000,
+        remunerativo: false,
+      },
+    ],
     adicionales: {
       retiroResiduos: true,
       clasificacionResiduos: true,
@@ -317,8 +313,8 @@ describe("detalle del recibo", () => {
     const suma = filas.reduce((acc, fila) => acc + fila.haber, 0)
     const total = r.haberes.find((fila) => fila.esTotal)
 
-    casi(suma, r.bruto)
-    casi(total?.haber ?? 0, r.bruto)
+    casi(suma, r.totalHaberes)
+    casi(total?.haber ?? 0, r.totalHaberes)
   })
 
   it("las filas de descuentos suman exactamente el total de descuentos", () => {
@@ -509,5 +505,61 @@ describe("horas fijas del legajo sumadas a las cargadas a mano", () => {
     const conTodo = liquidar({ ...entradas, ...totalHoras(entradas, FIJAS) })
 
     assert.equal(conTodo.valorHora, base.valorHora)
+  })
+})
+
+describe("parsearAjustes", () => {
+  it("acepta el JSON del formulario del legajo", () => {
+    const r = parsearAjustes(
+      '[{"id":"a","concepto":"Suma remunerativa","columna":"haber","monto":55000,"remunerativo":true}]'
+    )
+
+    assert.deepEqual(r, [
+      {
+        id: "a",
+        concepto: "Suma remunerativa",
+        columna: "haber",
+        monto: 55000,
+        remunerativo: true,
+      },
+    ])
+  })
+
+  it("acepta un array ya parseado, como el que devuelve la base", () => {
+    const r = parsearAjustes([
+      { id: "b", concepto: "Viático", columna: "haber", monto: 30000, remunerativo: false },
+    ])
+
+    assert.equal(r.length, 1)
+    assert.equal(r[0].remunerativo, false)
+  })
+
+  it("descarta lo que no es un ajuste", () => {
+    assert.deepEqual(parsearAjustes("no soy json"), [])
+    assert.deepEqual(parsearAjustes(null), [])
+    assert.deepEqual(parsearAjustes('[null, 3, "x"]'), [])
+  })
+
+  it("descarta los que no tienen concepto o monto", () => {
+    assert.deepEqual(parsearAjustes('[{"concepto":"","monto":100}]'), [])
+    assert.deepEqual(parsearAjustes('[{"concepto":"   ","monto":100}]'), [])
+    assert.deepEqual(parsearAjustes('[{"concepto":"Bono","monto":0}]'), [])
+    assert.deepEqual(parsearAjustes('[{"concepto":"Bono","monto":-5}]'), [])
+  })
+
+  it("un descuento nunca queda como remunerativo", () => {
+    const r = parsearAjustes(
+      '[{"concepto":"Anticipo","columna":"descuento","monto":200000,"remunerativo":true}]'
+    )
+
+    assert.equal(r[0].columna, "descuento")
+    assert.equal(r[0].remunerativo, false)
+  })
+
+  it("un haber sin la marca se toma como remunerativo", () => {
+    const r = parsearAjustes('[{"concepto":"Bono","monto":100}]')
+
+    assert.equal(r[0].columna, "haber")
+    assert.equal(r[0].remunerativo, true)
   })
 })
