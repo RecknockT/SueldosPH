@@ -118,7 +118,9 @@ export function DialogoLegajo({
         )}
       </DialogTrigger>
 
-      <DialogContent className="max-h-[88dvh] overflow-y-auto sm:max-w-3xl">
+      {/* 52.8rem es max-w-3xl (48rem) más un 10%: el salto siguiente de la
+          escala, max-w-4xl, se pasa. */}
+      <DialogContent className="max-h-[88dvh] overflow-y-auto sm:max-w-[52.8rem]">
         <DialogHeader>
           <DialogTitle>{legajo ? "Editar legajo" : "Nuevo legajo"}</DialogTitle>
           <DialogDescription>
