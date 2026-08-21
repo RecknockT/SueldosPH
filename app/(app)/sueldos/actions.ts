@@ -14,9 +14,11 @@ import {
   ENTRADAS_INICIALES,
   calcularLiquidacion,
   parsearAjustes,
+  parsearTramosHoras,
   type Categoria,
   type Ajuste,
   type Entradas,
+  type TramoHoras,
   type EstadoAdicionales,
   type EstadoAportes,
 } from "@/lib/liquidacion"
@@ -34,6 +36,8 @@ export type DatosLiquidacion = {
   adicionales: EstadoAdicionales
   aportes: EstadoAportes
   ajustes?: Ajuste[]
+  /** Horas que salen de las reglas del legajo, con su origen para el recibo. */
+  horasFijas?: TramoHoras[]
   empleado: { nombre: string; cuil: string | null; fechaIngreso: string | null }
   empleador: { nombre: string | null; cuit: string | null }
   /** Póliza de ART y seguro de vida; si falta se usan los valores por defecto. */
@@ -68,6 +72,7 @@ export async function guardarLiquidacion(
   const aportes: EstadoAportes = { ...APORTES_INICIALES, ...datos.aportes }
 
   const ajustes = parsearAjustes(datos.ajustes)
+  const horasFijas = parsearTramosHoras(datos.horasFijas)
 
   const resultado = calcularLiquidacion({
     planilla,
@@ -77,6 +82,7 @@ export async function guardarLiquidacion(
     adicionales,
     aportes,
     ajustes,
+    horasFijas,
   })
 
   const costoLaboral = calcularCostoLaboral(
@@ -102,6 +108,7 @@ export async function guardarLiquidacion(
     adicionales,
     aportes,
     ajustes,
+    horasFijas,
     resultado,
     costoLaboral,
   }
