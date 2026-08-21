@@ -136,6 +136,53 @@ describe("calcularLiquidacion", () => {
     casi(r.horasExtras, 3 * valorHora * 2 + 2 * valorHora * 1.5)
   })
 
+  it("calcula el valor hora sobre todo lo remunerativo", () => {
+    const r = liquidar({
+      cargo: CON_VIVIENDA,
+      entradas: { antiguedad: 5, uf: 20, adicRem: 50000 },
+      adicionales: {
+        retiroResiduos: true,
+        clasificacionResiduos: true,
+        jardin: true,
+        limpiezaCochera: true,
+        movimientoAutos: true,
+        viaticos: true,
+        tituloEncargadoIntegral: true,
+      },
+    })
+
+    // La base del valor hora es la del bruto, sin las horas extra.
+    casi(r.valorHora, (r.bruto - r.horasExtras) / 200)
+  })
+
+  it("cada adicional por tarea sube el valor hora", () => {
+    const sinNinguno = liquidar()
+
+    const adicionales = [
+      "jardin",
+      "limpiezaCochera",
+      "movimientoAutos",
+      "viaticos",
+      "tituloEncargadoIntegral",
+    ] as const
+
+    for (const clave of adicionales) {
+      const con = liquidar({ adicionales: { [clave]: true } })
+
+      assert.ok(
+        con.valorHora > sinNinguno.valorHora,
+        `${clave} debería subir el valor hora y no lo hace`
+      )
+    }
+  })
+
+  it("la suma remunerativa entra al valor hora", () => {
+    const sin = liquidar()
+    const con = liquidar({ entradas: { adicRem: 100000 } })
+
+    casi(con.valorHora - sin.valorHora, 100000 / 200)
+  })
+
   it("paga la hora al 100% más que la hora al 50%", () => {
     const alCincuenta = liquidar({ entradas: { horas50: 10 } })
     const alCien = liquidar({ entradas: { horas100: 10 } })

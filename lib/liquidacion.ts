@@ -301,15 +301,17 @@ export function calcularLiquidacion({
 
   const baseSueldo = sueldoBasico + adicRem + antiguedad + vivienda
 
-  // El valor hora toma el básico y los adicionales fijos, no los de tarea eventual.
-  const valorHora =
-    (sueldoBasico +
-      antiguedad +
-      retiroResiduos +
-      clasificacionResiduos +
-      adicRem +
-      vivienda) /
-    HORAS_MENSUALES
+  /**
+   * El valor hora se calcula sobre todo lo remunerativo: el básico, la
+   * antigüedad, la vivienda, la suma remunerativa y los adicionales por tarea.
+   * Es la misma base que la del bruto, sin las horas extra.
+   *
+   * Antes sólo entraban retiro y clasificación de residuos, así que quien
+   * cobraba jardín, cochera, movimiento de autos, viáticos o título de encargado
+   * integral tenía la hora subvaluada.
+   */
+  const baseValorHora = baseSueldo + totalAdicionales
+  const valorHora = baseValorHora / HORAS_MENSUALES
 
   const montoHoras100 = horas100 * valorHora * MULTIPLICADOR_HORA_100
   const montoHoras50 = horas50 * valorHora * MULTIPLICADOR_HORA_50
