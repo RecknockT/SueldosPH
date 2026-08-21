@@ -153,6 +153,19 @@ Dos decisiones que conviene conocer:
   datos de entrada, así lo que queda emitido siempre es lo que produce el motor
   de cálculo.
 
+## Ajustes
+
+Líneas libres de la liquidación, para lo que no es un concepto de la planilla:
+sumas remunerativas puntuales, vacaciones, suplencias, anticipos, embargos.
+
+Cada línea define tres cosas:
+
+- **Haber o descuento.**
+- **No remunerativo**: va al neto sin pagar aportes.
+- **Suma al sueldo jornal**: integra la base del valor hora. Un haber puede ser
+  remunerativo —y pagar aportes— sin levantar el valor hora; son decisiones
+  distintas.
+
 ## Feriados
 
 Se sincronizan con `npm run sync:feriados` y quedan en `data/feriados`, un JSON

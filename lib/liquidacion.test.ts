@@ -7,6 +7,7 @@ import {
   ENTRADAS_INICIALES,
   calcularLiquidacion,
   cobraVivienda,
+  type Ajuste,
   type EstadoAdicionales,
   type EstadoAportes,
   type Entradas,
@@ -337,5 +338,126 @@ describe("detalle del recibo", () => {
     const ids = sinAdicionales.haberes.map((fila) => fila.id)
 
     assert.deepEqual(ids, ["basico", "total-haberes"])
+  })
+})
+
+describe("ajustes", () => {
+  const ajuste = (parcial: Partial<Ajuste>): Ajuste => ({
+    id: "x",
+    concepto: "Prueba",
+    columna: "haber",
+    monto: 100000,
+    noRemunerativo: false,
+    sumaAlJornal: true,
+    ...parcial,
+  })
+
+  const conAjustes = (ajustes: Ajuste[], entradas: Partial<Entradas> = {}) =>
+    calcularLiquidacion({
+      planilla: PLANILLA,
+      cargo: SIN_VIVIENDA,
+      categoria: 1,
+      entradas: { ...ENTRADAS_INICIALES, ...entradas },
+      adicionales: ADICIONALES_INICIALES,
+      aportes: APORTES_INICIALES,
+      ajustes,
+    })
+
+  const base = conAjustes([])
+
+  it("un haber remunerativo entra al bruto y a la base de aportes", () => {
+    const r = conAjustes([ajuste({})])
+
+    casi(r.bruto, base.bruto + 100000)
+    casi(r.descuentos, r.bruto * (TOTAL_APORTES / 100))
+  })
+
+  it("un haber que suma al jornal levanta el valor hora", () => {
+    const r = conAjustes([ajuste({ sumaAlJornal: true })])
+    casi(r.valorHora - base.valorHora, 100000 / 200)
+  })
+
+  it("un haber remunerativo que no suma al jornal deja la hora quieta", () => {
+    const r = conAjustes([ajuste({ sumaAlJornal: false })])
+
+    casi(r.valorHora, base.valorHora)
+    casi(r.bruto, base.bruto + 100000)
+  })
+
+  it("un haber no remunerativo va al neto sin pagar aportes", () => {
+    const r = conAjustes([ajuste({ noRemunerativo: true })])
+
+    casi(r.bruto, base.bruto)
+    casi(r.descuentos, base.descuentos)
+    casi(r.noRemunerativo, 100000)
+    casi(r.neto, base.neto + 100000)
+  })
+
+  it("un no remunerativo nunca toca el valor hora, aunque se lo marque", () => {
+    const r = conAjustes([ajuste({ noRemunerativo: true, sumaAlJornal: true })])
+    casi(r.valorHora, base.valorHora)
+  })
+
+  it("un descuento resta del neto sin tocar el bruto", () => {
+    const r = conAjustes([ajuste({ columna: "descuento" })])
+
+    casi(r.bruto, base.bruto)
+    casi(r.descuentos, base.descuentos + 100000)
+    casi(r.neto, base.neto - 100000)
+  })
+
+  it("varios ajustes conviven", () => {
+    const r = conAjustes([
+      ajuste({ id: "a", concepto: "Suma remunerativa", monto: 55000 }),
+      ajuste({ id: "b", concepto: "Vacaciones", monto: 786118.84 }),
+      ajuste({ id: "c", concepto: "Anticipo", columna: "descuento", monto: 200000 }),
+      ajuste({ id: "d", concepto: "Viático fijo", noRemunerativo: true, monto: 30000 }),
+    ])
+
+    casi(r.bruto, base.bruto + 55000 + 786118.84)
+    casi(r.descuentos, r.bruto * (TOTAL_APORTES / 100) + 200000)
+    casi(r.noRemunerativo, 30000)
+  })
+
+  it("se imprime cada ajuste con su concepto", () => {
+    const r = conAjustes([
+      ajuste({ id: "a", concepto: "vacaciones", monto: 786118.84 }),
+      ajuste({ id: "b", concepto: "anticipo", columna: "descuento", monto: 200000 }),
+    ])
+
+    assert.ok(r.haberes.some((f) => f.detalle === "VACACIONES"))
+    assert.ok(r.deducciones.some((f) => f.detalle === "ANTICIPO"))
+  })
+
+  it("marca los no remunerativos en el recibo", () => {
+    const r = conAjustes([ajuste({ concepto: "bono", noRemunerativo: true })])
+    const fila = r.haberes.find((f) => f.detalle === "BONO")
+
+    assert.equal(fila?.unidad, "NO REM.")
+  })
+
+  it("ignora montos negativos", () => {
+    const r = conAjustes([ajuste({ monto: -500000 })])
+    casi(r.bruto, base.bruto)
+  })
+
+  it("las filas siguen sumando sus totales", () => {
+    const r = conAjustes(
+      [
+        ajuste({ id: "a", monto: 55000 }),
+        ajuste({ id: "b", columna: "descuento", monto: 200000 }),
+      ],
+      { horas100: 10 }
+    )
+
+    const sumaHaberes = r.haberes
+      .filter((f) => !f.esTotal)
+      .reduce((acc, f) => acc + f.haber, 0)
+    const sumaDescuentos = r.deducciones
+      .filter((f) => !f.esTotal)
+      .reduce((acc, f) => acc + f.descuento, 0)
+
+    casi(sumaHaberes, r.bruto)
+    casi(sumaDescuentos, r.descuentos)
   })
 })

@@ -174,6 +174,31 @@ const ORDEN_RECIBO_APORTES: ClaveAporte[] = [
   "seguroVitalicio",
 ]
 
+export type ColumnaAjuste = "haber" | "descuento"
+
+/**
+ * Línea libre de la liquidación: sumas remunerativas puntuales, vacaciones,
+ * anticipos, embargos, préstamos. Todo lo que no es un concepto de la planilla.
+ */
+export type Ajuste = {
+  id: string
+  concepto: string
+  columna: ColumnaAjuste
+  monto: number
+  /** Sólo para haberes: no integra la base de aportes. */
+  noRemunerativo: boolean
+  /** Sólo para haberes remunerativos: integra la base del valor hora. */
+  sumaAlJornal: boolean
+}
+
+export const AJUSTE_VACIO: Omit<Ajuste, "id"> = {
+  concepto: "",
+  columna: "haber",
+  monto: 0,
+  noRemunerativo: false,
+  sumaAlJornal: true,
+}
+
 export type FilaRecibo = {
   id: string
   detalle: string
@@ -206,6 +231,7 @@ export type ParametrosLiquidacion = {
   entradas: Entradas
   adicionales: EstadoAdicionales
   aportes: EstadoAportes
+  ajustes?: Ajuste[]
 }
 
 const num = (valor: number | "") => (valor === "" ? 0 : Number(valor) || 0)
@@ -276,6 +302,7 @@ export function calcularLiquidacion({
   entradas,
   adicionales,
   aportes,
+  ajustes = [],
 }: ParametrosLiquidacion): Liquidacion {
   const uf = num(entradas.uf)
   const anios = num(entradas.antiguedad)
@@ -342,14 +369,35 @@ export function calcularLiquidacion({
    * cobraba jardín, cochera, movimiento de autos, viáticos o título de encargado
    * integral tenía la hora subvaluada.
    */
-  const baseValorHora = baseSueldo + totalAdicionales
+  // Los ajustes se parten en tres: lo que suma al jornal, lo que es
+  // remunerativo pero no al jornal, y lo no remunerativo.
+  const limpios = ajustes.map((a) => ({ ...a, monto: Math.max(0, num(a.monto)) }))
+  const haberesAjuste = limpios.filter((a) => a.columna === "haber")
+
+  const ajusteAlJornal = haberesAjuste
+    .filter((a) => !a.noRemunerativo && a.sumaAlJornal)
+    .reduce((acc, a) => acc + a.monto, 0)
+
+  const ajusteRemunerativo = haberesAjuste
+    .filter((a) => !a.noRemunerativo)
+    .reduce((acc, a) => acc + a.monto, 0)
+
+  const ajusteNoRemunerativo = haberesAjuste
+    .filter((a) => a.noRemunerativo)
+    .reduce((acc, a) => acc + a.monto, 0)
+
+  const ajusteDescuento = limpios
+    .filter((a) => a.columna === "descuento")
+    .reduce((acc, a) => acc + a.monto, 0)
+
+  const baseValorHora = baseSueldo + totalAdicionales + ajusteAlJornal
   const valorHora = baseValorHora / HORAS_MENSUALES
 
   const montoHoras100 = horas100 * valorHora * MULTIPLICADOR_HORA_100
   const montoHoras50 = horas50 * valorHora * MULTIPLICADOR_HORA_50
   const horasExtras = montoHoras100 + montoHoras50
 
-  const bruto = baseSueldo + totalAdicionales + horasExtras
+  const bruto = baseSueldo + totalAdicionales + ajusteRemunerativo + horasExtras
 
   let descuentos = 0
   for (const clave of ORDEN_RECIBO_APORTES) {
@@ -357,9 +405,10 @@ export function calcularLiquidacion({
   }
   // La vivienda suma como haber (integra la base de aportes) y se descuenta
   // después porque es un beneficio en especie, no efectivo.
-  descuentos += vivienda
+  descuentos += vivienda + ajusteDescuento
 
-  const neto = bruto - descuentos + adicNoRem
+  const noRemunerativo = adicNoRem + ajusteNoRemunerativo
+  const neto = bruto - descuentos + noRemunerativo
 
   const haberes: FilaRecibo[] = [
     {
@@ -394,6 +443,15 @@ export function calcularLiquidacion({
     formatPorcentaje(tabla.zonaDesfavorable),
     zonaDesfavorable
   )
+
+  for (const ajuste of haberesAjuste) {
+    agregarHaber(
+      `ajuste-${ajuste.id}`,
+      ajuste.concepto.trim().toUpperCase() || "AJUSTE",
+      ajuste.noRemunerativo ? "NO REM." : "",
+      ajuste.monto
+    )
+  }
 
   haberes.push({
     id: "total-haberes",
@@ -431,6 +489,18 @@ export function calcularLiquidacion({
     })
   }
 
+  for (const ajuste of limpios.filter((a) => a.columna === "descuento")) {
+    if (ajuste.monto <= 0) continue
+
+    deducciones.push({
+      id: `ajuste-${ajuste.id}`,
+      detalle: ajuste.concepto.trim().toUpperCase() || "AJUSTE",
+      unidad: "",
+      haber: 0,
+      descuento: ajuste.monto,
+    })
+  }
+
   deducciones.push({
     id: "total-descuentos",
     detalle: "TOTAL DESCUENTOS",
@@ -450,7 +520,7 @@ export function calcularLiquidacion({
     horasExtras,
     bruto,
     descuentos,
-    noRemunerativo: adicNoRem,
+    noRemunerativo,
     neto,
     haberes,
     deducciones,
